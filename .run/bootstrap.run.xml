@@ -19,7 +19,6 @@
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>false</ExternalSystemReattachDebugProcess>
-    <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
     <method v="2" />
   </configuration>
 </component>

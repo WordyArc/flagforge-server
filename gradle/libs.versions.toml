@@ -7,5 +7,6 @@ spring-cloud-bom = "2025.1.0-M4"
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-bom" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud-bom" }
 
+spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
 spring-boot-starter-web = "org.springframework.boot:spring-boot-starter-web"
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"

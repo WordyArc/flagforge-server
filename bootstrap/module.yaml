@@ -5,7 +5,10 @@ apply:
   - ../spring.module-template.yaml
 
 dependencies:
-  - $libs.spring.boot.starter.web
+  - $libs.spring.boot.autoconfigure
+  - org.springframework:spring-core
+  - org.springframework:spring-context
+  - org.yaml:snakeyaml
 
 test-dependencies:
   - $libs.spring.boot.starter.test

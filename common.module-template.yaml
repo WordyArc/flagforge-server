@@ -2,6 +2,7 @@ settings:
   jvm:
     release: 21
   kotlin:
-    version: 2.3.0-Beta2
+    #version: 2.3.0-Beta2
+    languageVersion: 2.3
     powerAssert:
       enabled: true
