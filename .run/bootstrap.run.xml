@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="flagforge-server" type="AmperGenericRunConfigurationType" factoryName="Amper">
+  <configuration default="false" name="bootstrap" type="AmperGenericRunConfigurationType" factoryName="Amper">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -12,7 +12,7 @@
         <list>
           <option value="run" />
           <option value="-m" />
-          <option value="flagforge-server" />
+          <option value="bootstrap" />
         </list>
       </option>
       <option name="vmOptions" />

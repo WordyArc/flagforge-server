@@ -2,8 +2,8 @@
   <configuration default="false" name="ApplicationKt" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ALTERNATIVE_JRE_PATH" value="21" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <module name="flagforge-server.jvm" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="dev.owlmajin.flagforge.server.ApplicationKt" />
+    <module name="bootstrap.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="dev.owlmajin.flagforge.server.bootstrap.ApplicationKt" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

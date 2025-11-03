@@ -1,0 +1,14 @@
+dependencies:
+  - bom: $libs.spring.boot.dependencies
+  - bom: $libs.spring.cloud.dependencies
+
+settings:
+  kotlin:
+    allOpen:
+      enabled: true
+      presets:
+        - spring
+    noArg:
+      enabled: true
+      presets:
+        - jpa
