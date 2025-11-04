@@ -7,3 +7,7 @@ apply:
 dependencies:
   - $libs.spring.kafka
   - $libs.spring.boot.kafka
+
+settings:
+  kotlin:
+    optIns: [ kotlin.uuid.ExperimentalUuidApi ]
