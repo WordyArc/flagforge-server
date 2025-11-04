@@ -3,13 +3,18 @@ spring-bom = "4.0.0-RC1"
 spring-cloud-bom = "2025.1.0-M4"
 
 [libraries]
-# --- spring ---
+# --- spring dependencies ---
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-bom" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud-bom" }
 
-spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
 spring-boot-starter-web = "org.springframework.boot:spring-boot-starter-web"
+spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
+spring-kafka = "org.springframework.kafka:spring-kafka"
+spring-boot-kafka = "org.springframework.boot:spring-boot-kafka"
+spring-boot-starter-kafka = "org.springframework.boot:spring-boot-starter-kafka"
+
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 
+# -- other
 jackson-core = "tools.jackson.core:jackson-core"
 jackson-databind = "tools.jackson.core:jackson-databind"
