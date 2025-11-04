@@ -10,3 +10,6 @@ spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-d
 spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
 spring-boot-starter-web = "org.springframework.boot:spring-boot-starter-web"
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
+
+jackson-core = "tools.jackson.core:jackson-core"
+jackson-databind = "tools.jackson.core:jackson-databind"

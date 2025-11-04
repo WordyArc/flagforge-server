@@ -1,0 +1,13 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    optIns: [ kotlin.time.ExperimentalTime, kotlin.uuid.ExperimentalUuidApi ]
+
+apply:
+  - ../../common.module-template.yaml
+  - ../../spring.module-template.yaml
+
+dependencies:
+  - $libs.jackson.core
+  - $libs.jackson.databind

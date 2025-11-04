@@ -1,2 +1,3 @@
 modules:
   - bootstrap
+  - modules/flagforge-model
