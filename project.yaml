@@ -1,3 +1,5 @@
 modules:
   - bootstrap
   - modules/flagforge-model
+  - modules/flagforge-processor
+  - modules/flagforge-common-kafka

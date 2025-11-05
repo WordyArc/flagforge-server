@@ -5,10 +5,13 @@ apply:
   - ../spring.module-template.yaml
 
 dependencies:
-  - $libs.spring.boot.autoconfigure
-  - org.springframework:spring-core
-  - org.springframework:spring-context
-  - org.yaml:snakeyaml
+  - ../modules/flagforge-common-kafka
+
+#  - $libs.spring.boot.autoconfigure
+#  - org.springframework:spring-core
+#  - org.springframework:spring-context
+#  - org.yaml:snakeyaml
+  - $libs.spring.boot.starter.web
 
 test-dependencies:
   - $libs.spring.boot.starter.test

@@ -1,2 +1,29 @@
 spring:
   application.name: flagforge-server
+
+app:
+  persistence:
+    enabled: true
+    auto-create-topics: true
+    kafka:
+      bootstrap-servers: host.docker.internal:9092
+      client-id: flagforge-server
+    flag-commands:
+      partitions: 6
+      replication-factor: 1
+      topic-config:
+        retention.ms: "86400000"
+    flag-events:
+        name: flag-events-v2
+        partitions: 12
+    flag-state:
+        partitions: 3
+        replication-factor: 1
+    segment-state:
+        partitions: 3
+    env-state:
+        partitions: 3
+    project-state:
+        partitions: 3
+    sdk-keys:
+        partitions: 3
