@@ -14,71 +14,71 @@ class PersistenceProperties {
 
     var flagCommands = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
     var flagEvents = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
     var flagState = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
     var segmentState = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
     var envState = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
     var projectState = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
     var sdkKeys = TopicProperties()
         set(value) {
-            field = value.withDefault(field)
+            field = value.overrideWith(field)
         }
 
     init {
-        flagCommands = flagCommands.withDefault(
+        flagCommands = flagCommands.withMetadata(
             "flag-commands",
             "flagCommandsTopic",
             DELETE_POLICY,
             "runtime"
         )
-        flagEvents = flagEvents.withDefault(
+        flagEvents = flagEvents.withMetadata(
             "flag-events",
             "flagEventsTopic",
             DELETE_POLICY,
             "runtime"
         )
-        flagState = flagState.withDefault(
+        flagState = flagState.withMetadata(
             "flag-state",
             "flagStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        segmentState = segmentState.withDefault(
+        segmentState = segmentState.withMetadata(
             "segment-state",
             "segmentStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        envState = envState.withDefault(
+        envState = envState.withMetadata(
             "env-state",
             "envStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        projectState = flagState.withDefault(
+        projectState = projectState.withMetadata(
             "project-state",
             "projectStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        sdkKeys = flagState.withDefault(
+        sdkKeys = sdkKeys.withMetadata(
             "sdk-keys",
             "sdkKeysTopic",
             COMPACT_POLICY,

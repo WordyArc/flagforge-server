@@ -11,7 +11,7 @@ import kotlin.uuid.Uuid
 private const val KAFKA_ADMIN = "kafka-admin"
 private const val KAFKA_ADMIN_CLIENT = "kafka-admin-client"
 
-class KafkaConnect(val kafkaProperties: KafkaProperties) {
+class KafkaConnect(val kafkaProperties: KafkaProperties): AutoCloseable {
 
     val kafkaAdmin: KafkaAdmin = KafkaAdmin(kafkaProperties.buildAdminProperties().also {
             it[AdminClientConfig.CLIENT_ID_CONFIG] = "${it[AdminClientConfig.CLIENT_ID_CONFIG]}-$KAFKA_ADMIN-${Uuid.random()}"
@@ -21,14 +21,17 @@ class KafkaConnect(val kafkaProperties: KafkaProperties) {
         it[AdminClientConfig.CLIENT_ID_CONFIG] = "${it[AdminClientConfig.CLIENT_ID_CONFIG]}-$KAFKA_ADMIN_CLIENT-${Uuid.random()}"
     })
 
-    internal fun createOrModifyTopic(topics: Set<NewTopic>) {
+    internal fun createOrUpdateTopic(topics: Set<NewTopic>) {
+        if (topics.isEmpty()) return
         kafkaAdmin.createOrModifyTopics(*topics.toTypedArray())
     }
 
-    internal fun getExistingTopicNames(): Set<String> {
+    internal fun listExistingTopicNames(): Set<String> {
         return adminClient.listTopics().names().get()
     }
 
-    internal fun finalize() = adminClient.close()
+    override fun close() {
+        adminClient.close()
+    }
 
 }

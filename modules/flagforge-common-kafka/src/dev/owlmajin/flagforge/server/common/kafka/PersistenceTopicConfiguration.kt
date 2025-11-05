@@ -1,5 +1,8 @@
 package dev.owlmajin.flagforge.server.common.kafka
 
+import org.apache.kafka.clients.admin.NewTopic
+import org.slf4j.LoggerFactory
+import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -7,21 +10,34 @@ import org.springframework.context.annotation.Profile
 @Configuration
 class PersistenceTopicConfiguration {
 
-    @Bean
-    fun persistenceProperties() = PersistenceProperties()
-
-    @Bean
-    fun topicInitialization(
-        topicGroups: List<TopicGroup>,
-        persistenceProperties: PersistenceProperties,
-    ) {
-
-    }
+    private val log = LoggerFactory.getLogger(javaClass)
 
     class TopicGroup(
         val name: String,
         val topics: (PersistenceProperties) -> Set<TopicProperties>
     )
+
+    @Bean
+    fun topicInitializer(
+        topicGroups: List<TopicGroup>,
+        persistenceProperties: PersistenceProperties,
+        kafkaConnect: KafkaConnect,
+    ) = ApplicationRunner {
+        if (!persistenceProperties.enabled || !persistenceProperties.autoCreateTopics) {
+            log.info("auto create topics is disabled (enabled=${persistenceProperties.enabled}, autoCreateTopics=${persistenceProperties.autoCreateTopics})")
+            return@ApplicationRunner
+        }
+
+        val allTopicsFromGroup: Set<TopicProperties> = topicGroups.flatMap { it.topics(persistenceProperties) }.toSet()
+        val existing = kafkaConnect.listExistingTopicNames()
+        val newTopics: Set<NewTopic> = allTopicsFromGroup
+            .filter { it.name !in existing }
+            .map { it.toNewTopic() }
+            .toSet()
+
+        log.info("Creating kafka topics: ${newTopics.map { it.name() }}")
+        kafkaConnect.createOrUpdateTopic(newTopics)
+    }
 
     @Profile("processor")
     @Configuration
@@ -38,5 +54,19 @@ class PersistenceTopicConfiguration {
                 add(it.sdkKeys)
             }
         }
+    }
+
+    private fun TopicProperties.toNewTopic(): NewTopic {
+        val newTopic = NewTopic(name, partitions, replicationFactor.toShort())
+
+        val effectiveConfig = buildMap {
+            putAll(topicConfig)
+            metadata?.let { metadata -> putIfAbsent("cleanup.policy", metadata.cleanupPolicy) }
+        }
+        if (effectiveConfig.isNotEmpty()) {
+            newTopic.configs(effectiveConfig)
+        }
+
+        return newTopic
     }
 }

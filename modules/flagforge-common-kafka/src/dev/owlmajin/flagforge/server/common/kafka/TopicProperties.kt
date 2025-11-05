@@ -1,27 +1,27 @@
 package dev.owlmajin.flagforge.server.common.kafka
 
-import org.springframework.boot.context.properties.bind.ConstructorBinding
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 
 
-data class TopicProperties @ConstructorBinding constructor(
-    val name: String = "",
-    val concurrency: Int = 1,
-    val partitions: Int = 1,
-    val replicationFactor: Int = 1,
-    val producer: KafkaProperties.Producer? = null,
-    val consumer: KafkaProperties.Consumer? = null,
-    val topicConfig: Map<String, String> = emptyMap(),
-    val defaultConfig: DefaultConfig? = null,
+data class TopicProperties (
+    var name: String = "",
+    var concurrency: Int = 1,
+    var partitions: Int = 1,
+    var replicationFactor: Int = 1,
+    var producer: KafkaProperties.Producer? = null,
+    var consumer: KafkaProperties.Consumer? = null,
+    var topicConfig: Map<String, String> = emptyMap(),
+    var metadata: TopicMetadata? = null,
 ) {
 
-    fun withDefault(
+    fun withMetadata(
         topicName: String,
         description: String,
         cleanupPolicy: String,
         header: String,
-    ): TopicProperties = withDefault(
-        DefaultConfig(
+    ): TopicProperties = copy(
+        name = name.ifBlank { topicName },
+        metadata = TopicMetadata(
             topicName = topicName,
             description = description,
             cleanupPolicy = cleanupPolicy,
@@ -29,13 +29,12 @@ data class TopicProperties @ConstructorBinding constructor(
         )
     )
 
-    fun withDefault(topic: TopicProperties): TopicProperties = withDefault(topic.defaultConfig)
+    fun overrideWith(defaults: TopicProperties): TopicProperties = copyWith(defaults.metadata)
 
-    private fun withDefault(defaultConfig: DefaultConfig?): TopicProperties = copy(defaultConfig = defaultConfig)
-
+    private fun copyWith(defaultConfig: TopicMetadata?): TopicProperties = copy(metadata = defaultConfig)
 }
 
-data class DefaultConfig(
+data class TopicMetadata(
     val topicName: String,
     val description: String = "",
     val cleanupPolicy: String,
