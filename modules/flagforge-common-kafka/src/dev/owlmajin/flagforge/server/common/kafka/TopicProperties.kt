@@ -29,7 +29,9 @@ data class TopicProperties @ConstructorBinding constructor(
         )
     )
 
-    private fun withDefault(defaultConfig: DefaultConfig): TopicProperties = copy(defaultConfig = defaultConfig)
+    fun withDefault(topic: TopicProperties): TopicProperties = withDefault(topic.defaultConfig)
+
+    private fun withDefault(defaultConfig: DefaultConfig?): TopicProperties = copy(defaultConfig = defaultConfig)
 
 }
 

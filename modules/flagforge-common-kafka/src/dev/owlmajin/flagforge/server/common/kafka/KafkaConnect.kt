@@ -11,14 +11,11 @@ import kotlin.uuid.Uuid
 private const val KAFKA_ADMIN = "kafka-admin"
 private const val KAFKA_ADMIN_CLIENT = "kafka-admin-client"
 
-class KafkaConnect(val kafkaProperties: KafkaProperties, val createTopicNames: Set<String>) {
+class KafkaConnect(val kafkaProperties: KafkaProperties) {
 
     val kafkaAdmin: KafkaAdmin = KafkaAdmin(kafkaProperties.buildAdminProperties().also {
             it[AdminClientConfig.CLIENT_ID_CONFIG] = "${it[AdminClientConfig.CLIENT_ID_CONFIG]}-$KAFKA_ADMIN-${Uuid.random()}"
-        }).apply {
-            setAutoCreate(false)
-            setCreateOrModifyTopic { it.name() in createTopicNames }
-        }
+    })
 
     val adminClient: AdminClient = KafkaAdminClient.create(kafkaProperties.buildAdminProperties().also {
         it[AdminClientConfig.CLIENT_ID_CONFIG] = "${it[AdminClientConfig.CLIENT_ID_CONFIG]}-$KAFKA_ADMIN_CLIENT-${Uuid.random()}"
@@ -27,4 +24,11 @@ class KafkaConnect(val kafkaProperties: KafkaProperties, val createTopicNames: S
     internal fun createOrModifyTopic(topics: Set<NewTopic>) {
         kafkaAdmin.createOrModifyTopics(*topics.toTypedArray())
     }
+
+    internal fun getExistingTopicNames(): Set<String> {
+        return adminClient.listTopics().names().get()
+    }
+
+    internal fun finalize() = adminClient.close()
+
 }
