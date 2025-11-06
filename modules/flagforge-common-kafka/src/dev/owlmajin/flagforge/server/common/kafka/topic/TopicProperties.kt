@@ -14,6 +14,7 @@ data class TopicProperties(
     var producer: KafkaProperties.Producer? = null,
     var consumer: KafkaProperties.Consumer? = null,
     var topicConfig: Map<String, String> = emptyMap(),
+    var header: String = "",
     var defaults: TopicDefaults? = null,
 ) {
 
@@ -40,6 +41,8 @@ data class TopicProperties(
 
     fun applyDefaults(): TopicProperties {
         val topicDefaults = defaults ?: return this
+
+        header = topicDefaults.header
 
         if (!topicConfig.containsKey(CLEANUP_POLICY)) {
             topicConfig = topicConfig + (CLEANUP_POLICY to topicDefaults.cleanupPolicy)
