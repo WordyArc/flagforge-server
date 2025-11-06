@@ -3,8 +3,8 @@ spring:
 
 app:
   persistence:
-    enabled: true
-    auto-create-topics: true
+    enabled: true # включена ли подсистема persistence
+    auto-create-topics: true # true - создать топики; false - не создаем, но валидируем существующие
     kafka:
       bootstrap-servers: host.docker.internal:9092
       client-id: flagforge-server

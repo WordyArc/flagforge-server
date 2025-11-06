@@ -3,17 +3,15 @@ package dev.owlmajin.flagforge.server.common.kafka
 class TopicGroupStarter(
     val groupName: String,
     val kafkaConnect: KafkaConnect,
-    val autoCreateTopicNames: Set<String>,
     val topics: Map<String, TopicProperties>,
+    val autoCreateTopicNames: Set<String>,
     val shouldValidate: Boolean,
 ) {
 
     init {
-        topics.values.forEach { it.applyMetadataDefaults() }
-        if (shouldValidate) {
-            createTopicsIfNeeded()
-            validateTopicsIfNeeded()
-        }
+        topics.values.forEach { it.applyDefaults() }
+        if (autoCreateTopicNames.isNotEmpty()) { createTopicsIfNeeded() }
+        if (shouldValidate) { validateTopicsIfNeeded() }
     }
 
     fun isAnyEnabled(): Boolean = topics.isNotEmpty()
@@ -25,21 +23,18 @@ class TopicGroupStarter(
         fun ofTopics(
             groupName: String,
             kafkaConnect: KafkaConnect,
-            enabled: Boolean,
-            autoCreateTopics: Boolean,
             topics: Set<TopicProperties>,
+            isAutoCreateEnabled: Boolean,
+            shouldValidate: Boolean
         ): TopicGroupStarter {
-            val preparedTopics =
-                if (enabled) topics.associateBy { it.name }
-                else emptyMap()
-
-
+            val preparedTopics = topics.associateBy { it.name }
+            val autoCreateTopicNames = if (isAutoCreateEnabled) preparedTopics.keys else emptySet()
             return TopicGroupStarter(
                 groupName = groupName,
                 kafkaConnect = kafkaConnect,
-                autoCreateTopicNames = if (autoCreateTopics) preparedTopics.keys else emptySet(),
                 topics = preparedTopics,
-                shouldValidate = enabled
+                autoCreateTopicNames = autoCreateTopicNames,
+                shouldValidate = shouldValidate
             )
         }
     }

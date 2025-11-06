@@ -10,23 +10,23 @@ data class TopicProperties(
     var name: String = "",
     var concurrency: Int = 1,
     var partitions: Int = 1,
-    var replicationFactor: Int = 1,
+    var replicationFactor: Short = 1,
     var producer: KafkaProperties.Producer? = null,
     var consumer: KafkaProperties.Consumer? = null,
     var topicConfig: Map<String, String> = emptyMap(),
-    var metadata: TopicMetadata? = null,
+    var defaults: TopicDefaults? = null,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun withMetadata(
+    fun withDefaults(
         topicName: String,
         description: String,
         cleanupPolicy: String,
         header: String,
     ): TopicProperties = copy(
         name = name.ifBlank { topicName },
-        metadata = TopicMetadata(
+        defaults = TopicDefaults(
             topicName = topicName,
             description = description,
             cleanupPolicy = cleanupPolicy,
@@ -34,26 +34,26 @@ data class TopicProperties(
         )
     )
 
-    fun overrideWith(defaults: TopicProperties): TopicProperties = copyWith(metadata ?: defaults.metadata)
+    fun overrideWith(other: TopicProperties): TopicProperties = copyWith(defaults ?: other.defaults)
 
-    private fun copyWith(defaultConfig: TopicMetadata?): TopicProperties = copy(metadata = defaultConfig)
+    private fun copyWith(defaultConfig: TopicDefaults?): TopicProperties = copy(defaults = defaultConfig)
 
-    fun applyMetadataDefaults(): TopicProperties {
-        val metadata = metadata ?: return this
+    fun applyDefaults(): TopicProperties {
+        val topicDefaults = defaults ?: return this
 
         if (!topicConfig.containsKey(CLEANUP_POLICY)) {
-            topicConfig = topicConfig + (CLEANUP_POLICY to metadata.cleanupPolicy)
-            log.debug("Set default $CLEANUP_POLICY=${metadata.cleanupPolicy} for topic=${effectiveName}")
+            topicConfig = topicConfig + (CLEANUP_POLICY to topicDefaults.cleanupPolicy)
+            log.debug("Set default $CLEANUP_POLICY=${topicDefaults.cleanupPolicy} for topic=${effectiveName}")
         }
         return this
     }
 
     private val effectiveName: String
-        get() = name.ifBlank { metadata?.topicName ?: "<unnamed>" }
+        get() = name.ifBlank { defaults?.topicName ?: "<unnamed>" }
 
 }
 
-data class TopicMetadata(
+data class TopicDefaults(
     val topicName: String,
     val description: String = "",
     val cleanupPolicy: String,

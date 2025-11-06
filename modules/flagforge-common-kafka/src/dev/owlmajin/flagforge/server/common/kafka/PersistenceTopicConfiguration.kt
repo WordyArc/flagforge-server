@@ -1,6 +1,5 @@
 package dev.owlmajin.flagforge.server.common.kafka
 
-import org.apache.kafka.clients.admin.NewTopic
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
@@ -23,36 +22,24 @@ class PersistenceTopicConfiguration {
         persistenceProperties: PersistenceProperties,
         kafkaConnect: KafkaConnect,
     ) = ApplicationRunner {
-        if (!persistenceProperties.enabled || !persistenceProperties.autoCreateTopics) {
-            log.info("auto create topics is disabled (enabled=${persistenceProperties.enabled}, autoCreateTopics=${persistenceProperties.autoCreateTopics})")
+        if (!persistenceProperties.enabled) {
+            log.info("persistence is disabled, skipping kafka topics initialization")
             return@ApplicationRunner
         }
 
-        val autoCreate: Boolean = persistenceProperties.autoCreateTopics
+        val isAutoCreateEnabled = persistenceProperties.autoCreateTopics
 
         topicGroups.forEach { group ->
             val topics = group.topics(persistenceProperties)
 
             TopicGroupStarter.ofTopics(
-                group.name,
-                kafkaConnect,
-                true,
-                autoCreate,
-                topics,
-
+                groupName = group.name,
+                kafkaConnect = kafkaConnect,
+                topics = topics,
+                isAutoCreateEnabled = isAutoCreateEnabled,
+                shouldValidate = true,
             )
         }
-
-
-        val allTopicsFromGroup: Set<TopicProperties> = topicGroups.flatMap { it.topics(persistenceProperties) }.toSet()
-        val existing = kafkaConnect.listExistingTopicNames()
-        val newTopics: Set<NewTopic> = allTopicsFromGroup
-            .filter { it.name !in existing }
-            .map { it.toNewTopic() }
-            .toSet()
-
-        log.info("Creating kafka topics: ${newTopics.map { it.name() }}")
-        kafkaConnect.createOrUpdateTopic(newTopics)
     }
 
     @Profile("processor")

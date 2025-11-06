@@ -7,17 +7,14 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger("dev.owlmajin.flagforge.server.common.kafka.utils")
 
 internal fun TopicProperties.toNewTopic(): NewTopic {
-    applyMetadataDefaults()
+    applyDefaults()
 
-    val newTopic = NewTopic(name, partitions, replicationFactor.toShort())
-
+    val newTopic = NewTopic(name, partitions, replicationFactor)
     if (topicConfig.isNotEmpty()) {
         newTopic.configs(topicConfig)
     }
-
     return newTopic
 }
-
 
 internal fun TopicGroupStarter.createTopicsIfNeeded() {
     if (!isAnyEnabled() || autoCreateTopicNames.isEmpty()) return
@@ -25,15 +22,14 @@ internal fun TopicGroupStarter.createTopicsIfNeeded() {
     log.info("Starting create $groupName topic(s)")
 
     try {
-        val notCreatedNames = kafkaConnect.getNotExistingTopics(autoCreateTopicNames)
-        if (notCreatedNames.isEmpty()) {
+        val notCreatedTopics = kafkaConnect.getNotExistingTopics(topics.keys)
+        notCreatedTopics.ifEmpty {
             log.info("All $groupName topic(s) already exist")
             return
-        } else {
-            log.info("Not found $groupName topic(s): $notCreatedNames on broker ${bootstrapServers()}. Try to create...")
         }
+        log.info("Not found $groupName topic(s): $notCreatedTopics on broker ${bootstrapServers()}. Try to create...")
 
-        val newTopics = notCreatedNames.map { name ->
+        val newTopics = notCreatedTopics.map { name ->
             val topic = topics[name]
                 ?: error("Topic '$name' not found in group '$groupName'")
             topic.toNewTopic()
@@ -68,7 +64,7 @@ internal fun TopicGroupStarter.validateTopicsIfNeeded() {
 
 
 private fun TopicGroupStarter.validateTopicsExist() {
-    log.info("Validating $groupName topics kit...")
+    log.info("Validating $groupName topics exists...")
     val notExistingTopics = kafkaConnect.getNotExistingTopics(topics.keys)
     check(notExistingTopics.isEmpty()) {
         "Found not existing/unavailable $groupName topic(s): $notExistingTopics on ${bootstrapServers()} broker(s). " +
@@ -99,11 +95,11 @@ private fun TopicGroupStarter.getInvalidCleanupPolicyTopicNames(): List<String> 
         val actual = config.get("cleanup.policy")?.value()
         val expected = topics[resource.name()]?.topicConfig?.get("cleanup.policy")
 
-        if (expected != null && actual != expected) {
-            resource.name()
-        } else {
-            null
-        }
+        if (expected != null && actual != expected) resource.name()
+        else null
     }
 }
+
+private fun TopicGroupStarter.buildNewTopic(topic: TopicProperties) =
+    NewTopic(topic.name, topic.partitions, topic.replicationFactor).configs(topic.topicConfig)
 

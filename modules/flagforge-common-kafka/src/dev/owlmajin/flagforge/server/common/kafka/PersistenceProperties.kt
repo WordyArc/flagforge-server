@@ -42,43 +42,43 @@ class PersistenceProperties {
         }
 
     init {
-        flagCommands = flagCommands.withMetadata(
+        flagCommands = flagCommands.withDefaults(
             "flag-commands",
             "flagCommandsTopic",
             DELETE_POLICY,
             "runtime"
         )
-        flagEvents = flagEvents.withMetadata(
+        flagEvents = flagEvents.withDefaults(
             "flag-events",
             "flagEventsTopic",
             DELETE_POLICY,
             "runtime"
         )
-        flagState = flagState.withMetadata(
+        flagState = flagState.withDefaults(
             "flag-state",
             "flagStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        segmentState = segmentState.withMetadata(
+        segmentState = segmentState.withDefaults(
             "segment-state",
             "segmentStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        envState = envState.withMetadata(
+        envState = envState.withDefaults(
             "env-state",
             "envStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        projectState = projectState.withMetadata(
+        projectState = projectState.withDefaults(
             "project-state",
             "projectStateTopic",
             COMPACT_POLICY,
             "runtime"
         )
-        sdkKeys = sdkKeys.withMetadata(
+        sdkKeys = sdkKeys.withDefaults(
             "sdk-keys",
             "sdkKeysTopic",
             COMPACT_POLICY,

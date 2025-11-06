@@ -35,7 +35,9 @@ class KafkaConnect(kafkaProperties: KafkaProperties): AutoCloseable {
         return topicNames - existing
     }
 
-
+    internal fun bootstrapServers(): String {
+        return kafkaAdmin.configurationProperties["bootstrap.servers"]?.toString() ?: "<unknown>"
+    }
 
     override fun close() {
         adminClient.close()
