@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.common.kafka
+package dev.owlmajin.flagforge.server.common.kafka.topic
 
 class TopicGroupStarter(
     val groupName: String,

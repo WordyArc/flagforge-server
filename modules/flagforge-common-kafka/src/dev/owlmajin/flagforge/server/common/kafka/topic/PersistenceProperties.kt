@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.common.kafka
+package dev.owlmajin.flagforge.server.common.kafka.topic
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties

@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.common.kafka
+package dev.owlmajin.flagforge.server.common.kafka.topic
 
 import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.common.config.ConfigResource

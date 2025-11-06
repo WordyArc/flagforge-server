@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.common.kafka
+package dev.owlmajin.flagforge.server.common.kafka.topic
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
