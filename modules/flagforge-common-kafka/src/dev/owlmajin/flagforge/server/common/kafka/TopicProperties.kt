@@ -1,9 +1,12 @@
 package dev.owlmajin.flagforge.server.common.kafka
 
+import org.slf4j.LoggerFactory
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 
 
-data class TopicProperties (
+private const val CLEANUP_POLICY = "cleanup.policy"
+
+data class TopicProperties(
     var name: String = "",
     var concurrency: Int = 1,
     var partitions: Int = 1,
@@ -13,6 +16,8 @@ data class TopicProperties (
     var topicConfig: Map<String, String> = emptyMap(),
     var metadata: TopicMetadata? = null,
 ) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     fun withMetadata(
         topicName: String,
@@ -29,9 +34,23 @@ data class TopicProperties (
         )
     )
 
-    fun overrideWith(defaults: TopicProperties): TopicProperties = copyWith(defaults.metadata)
+    fun overrideWith(defaults: TopicProperties): TopicProperties = copyWith(metadata ?: defaults.metadata)
 
     private fun copyWith(defaultConfig: TopicMetadata?): TopicProperties = copy(metadata = defaultConfig)
+
+    fun applyMetadataDefaults(): TopicProperties {
+        val metadata = metadata ?: return this
+
+        if (!topicConfig.containsKey(CLEANUP_POLICY)) {
+            topicConfig = topicConfig + (CLEANUP_POLICY to metadata.cleanupPolicy)
+            log.debug("Set default $CLEANUP_POLICY=${metadata.cleanupPolicy} for topic=${effectiveName}")
+        }
+        return this
+    }
+
+    private val effectiveName: String
+        get() = name.ifBlank { metadata?.topicName ?: "<unnamed>" }
+
 }
 
 data class TopicMetadata(

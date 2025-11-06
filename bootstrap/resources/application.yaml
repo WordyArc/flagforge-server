@@ -9,21 +9,34 @@ app:
       bootstrap-servers: host.docker.internal:9092
       client-id: flagforge-server
     flag-commands:
-      partitions: 6
+      name: flag-commands
+      concurrency: 1
+      partitions: 1
       replication-factor: 1
       topic-config:
         retention.ms: "86400000"
     flag-events:
-        name: flag-events-v2
-        partitions: 12
+      name: flag-events
+      concurrency: 1
+      partitions: 1
     flag-state:
-        partitions: 3
-        replication-factor: 1
+      name: flag-state
+      concurrency: 1
+      partitions: 1
+      replication-factor: 1
     segment-state:
-        partitions: 3
+      name: segment-state
+      concurrency: 1
+      partitions: 1
     env-state:
-        partitions: 3
+      name: env-state
+      concurrency: 1
+      partitions: 1
     project-state:
-        partitions: 3
+      name: project-state
+      concurrency: 1
+      partitions: 1
     sdk-keys:
-        partitions: 3
+      name: sdk-keys
+      concurrency: 1
+      partitions: 1

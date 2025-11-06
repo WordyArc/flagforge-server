@@ -28,6 +28,22 @@ class PersistenceTopicConfiguration {
             return@ApplicationRunner
         }
 
+        val autoCreate: Boolean = persistenceProperties.autoCreateTopics
+
+        topicGroups.forEach { group ->
+            val topics = group.topics(persistenceProperties)
+
+            TopicGroupStarter.ofTopics(
+                group.name,
+                kafkaConnect,
+                true,
+                autoCreate,
+                topics,
+
+            )
+        }
+
+
         val allTopicsFromGroup: Set<TopicProperties> = topicGroups.flatMap { it.topics(persistenceProperties) }.toSet()
         val existing = kafkaConnect.listExistingTopicNames()
         val newTopics: Set<NewTopic> = allTopicsFromGroup
@@ -56,17 +72,4 @@ class PersistenceTopicConfiguration {
         }
     }
 
-    private fun TopicProperties.toNewTopic(): NewTopic {
-        val newTopic = NewTopic(name, partitions, replicationFactor.toShort())
-
-        val effectiveConfig = buildMap {
-            putAll(topicConfig)
-            metadata?.let { metadata -> putIfAbsent("cleanup.policy", metadata.cleanupPolicy) }
-        }
-        if (effectiveConfig.isNotEmpty()) {
-            newTopic.configs(effectiveConfig)
-        }
-
-        return newTopic
-    }
 }

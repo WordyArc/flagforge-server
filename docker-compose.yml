@@ -8,7 +8,6 @@ services:
     ports:
       - "9092:9092"
     environment:
-      # Single-node KRaft (no Zookeeper required)
       - CLUSTER_ID=5L6g3nShT-eMCtK--X86sw
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=controller,broker
