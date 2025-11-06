@@ -50,8 +50,8 @@ internal fun TopicGroupStarter.validateTopicsIfNeeded() {
     log.info("Start $groupName validation...")
 
     try {
-        validateTopicsExist()
-        validateCleanupPolicy()
+        assertTopicsPresent()
+        assertCleanupPolicyMatches()
     } catch (e: Exception) {
         throw RuntimeException(
             "Kafka $groupName topics error. Check configuration or broker: ${bootstrapServers()} availability",
@@ -63,26 +63,16 @@ internal fun TopicGroupStarter.validateTopicsIfNeeded() {
 }
 
 
-private fun TopicGroupStarter.validateTopicsExist() {
-    log.info("Validating $groupName topics exists...")
-    val notExistingTopics = kafkaConnect.getNotExistingTopics(topics.keys)
-    check(notExistingTopics.isEmpty()) {
-        "Found not existing/unavailable $groupName topic(s): $notExistingTopics on ${bootstrapServers()} broker(s). " +
-                "Create them (enable autoCreateTopics) or check permissions."
+private fun TopicGroupStarter.assertTopicsPresent() {
+    val missing = kafkaConnect.getNotExistingTopics(topics.keys)
+    check(missing.isEmpty()) {
+        "Topics not found for group '$groupName': $missing on ${bootstrapServers()}. " +
+                "Either enable autoCreateTopics or create them manually."
     }
 }
 
-private fun TopicGroupStarter.validateCleanupPolicy() {
-    log.info("Validating $groupName cleanup.policy ...")
-
-    val invalid = getInvalidCleanupPolicyTopicNames()
-    check(invalid.isEmpty()) {
-        "$groupName topic(s) ${invalid.joinToString()} have incorrect cleanup.policy!"
-    }
-}
-
-private fun TopicGroupStarter.getInvalidCleanupPolicyTopicNames(): List<String> {
-    if (topics.isEmpty()) return emptyList()
+private fun TopicGroupStarter.assertCleanupPolicyMatches() {
+    if (topics.isEmpty()) return
 
     val resources = topics.keys.map { ConfigResource(ConfigResource.Type.TOPIC, it) }
 
@@ -91,12 +81,15 @@ private fun TopicGroupStarter.getInvalidCleanupPolicyTopicNames(): List<String> 
         .all()
         .get()
 
-    return configs.entries.mapNotNull { (resource, config) ->
+    val mismatched = configs.entries.mapNotNull { (resource, config) ->
         val actual = config.get("cleanup.policy")?.value()
         val expected = topics[resource.name()]?.topicConfig?.get("cleanup.policy")
 
-        if (expected != null && actual != expected) resource.name()
-        else null
+        if (expected != null && actual != expected) resource.name() else null
+    }
+
+    check(mismatched.isEmpty()) {
+        "cleanup.policy differs from expected for topics in group '$groupName': $mismatched"
     }
 }
 
