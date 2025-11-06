@@ -7,9 +7,9 @@ import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
 import java.net.URI
 
-fun TopicProperties.headerList(): MutableList<Header> = mutableListOf(
-    RecordHeader(DATA_SCHEMA_HEADER_NAME, header.toByteArray()),
-    RecordHeader(CONTENT_TYPE_HEADER_NAME, CONTENT_TYPE_JSON.toByteArray())
-)
+fun TopicProperties.defaultHeaders() = mutableListOf<Header>().apply {
+        add(RecordHeader(DATA_SCHEMA_HEADER_NAME, header.toByteArray()))
+        add(RecordHeader(CONTENT_TYPE_HEADER_NAME, CONTENT_TYPE_JSON.toByteArray()))
+    }
 
-fun TopicProperties.dataSchema() = URI(header)
+fun TopicProperties.dataSchemaUri(): URI = URI(header)
