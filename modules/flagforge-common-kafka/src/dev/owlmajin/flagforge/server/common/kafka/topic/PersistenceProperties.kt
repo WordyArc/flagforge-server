@@ -1,11 +1,8 @@
 package dev.owlmajin.flagforge.server.common.kafka.topic
 
+import dev.owlmajin.flagforge.server.common.kafka.DATA_SCHEMA_RUNTIME_V1_0_0
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
-
-const val DATA_SCHEMA_HEADER_NAME = "data-schema"
-const val DATA_SCHEMA_RUNTIME_V1_0_0 = "urn:flagforge:event:runtime:1.0.0"
-const val DATA_SCHEMA_HISTORIC_V1_0_0 = "urn:flagforge:event:historic:1.0.0"
 
 private const val DELETE_POLICY = "delete"
 private const val COMPACT_POLICY = "compact"

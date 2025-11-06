@@ -1,6 +1,6 @@
 package dev.owlmajin.flagforge.server.common.kafka.producer
 
-import dev.owlmajin.flagforge.server.common.kafka.topic.DATA_SCHEMA_HEADER_NAME
+import dev.owlmajin.flagforge.server.common.kafka.DATA_SCHEMA_HEADER_NAME
 import dev.owlmajin.flagforge.server.common.kafka.topic.TopicProperties
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.kafka.core.KafkaOperations
