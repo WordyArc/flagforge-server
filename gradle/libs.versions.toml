@@ -1,17 +1,21 @@
 [versions]
 spring-bom = "4.0.0-RC2"
-spring-cloud-bom = "2025.1.0-M4"
+spring-cloud-bom = "2025.0.0"
 
 [libraries]
 # --- spring dependencies ---
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-bom" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud-bom" }
 
+spring-context = "org.springframework:spring-context"
+spring-core = "org.springframework:spring-core"
 spring-boot-starter-web = "org.springframework.boot:spring-boot-starter-web"
 spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
 spring-kafka = "org.springframework.kafka:spring-kafka"
 spring-boot-kafka = "org.springframework.boot:spring-boot-kafka"
 spring-boot-starter-kafka = "org.springframework.boot:spring-boot-starter-kafka"
+
+spring-cloud-gateway-mvc = "org.springframework.cloud:spring-cloud-gateway-mvc"
 
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 

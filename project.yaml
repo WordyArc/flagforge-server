@@ -3,3 +3,6 @@ modules:
   - modules/flagforge-model
   - modules/flagforge-processor
   - modules/flagforge-common-kafka
+  - modules/flagforge-control-api
+  - modules/flagforge-persistence
+  - modules/flagforge-common
