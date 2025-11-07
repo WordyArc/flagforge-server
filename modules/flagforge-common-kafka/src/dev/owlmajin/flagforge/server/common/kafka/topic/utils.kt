@@ -92,7 +92,3 @@ private fun TopicGroupStarter.assertCleanupPolicyMatches() {
         "cleanup.policy differs from expected for topics in group '$groupName': $mismatched"
     }
 }
-
-private fun TopicGroupStarter.buildNewTopic(topic: TopicProperties) =
-    NewTopic(topic.name, topic.partitions, topic.replicationFactor).configs(topic.topicConfig)
-

@@ -44,17 +44,3 @@ private suspend fun <K : Any, V : Any> CompletableFuture<SendResult<K, V>>.await
             }
         }
     }
-
-private suspend fun <T : Any> CompletableFuture<T>.await(): T =
-    suspendCancellableCoroutine { cont ->
-        whenComplete { result, error ->
-            if (error != null) cont.resumeWithException(error)
-            else cont.resumeWith(Result.success(requireNotNull(result)))
-        }
-
-        cont.invokeOnCancellation {
-            if (!isDone && !isCancelled) {
-                cancel(true)
-            }
-        }
-    }
