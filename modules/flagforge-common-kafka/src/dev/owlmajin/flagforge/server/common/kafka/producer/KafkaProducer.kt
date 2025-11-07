@@ -9,7 +9,7 @@ import org.springframework.kafka.support.SendResult
 import java.util.concurrent.CompletableFuture
 
 class KafkaProducer<K: Any, V: Any>(
-    private val topic: TopicProperties,
+    internal val topic: TopicProperties,
     private val kafkaOperations: KafkaOperations<K, V>,
 ) {
     fun send(key: K, value: V): CompletableFuture<SendResult<K, V>> = send(key, value, topic.defaultHeaders())
