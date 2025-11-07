@@ -9,7 +9,3 @@ dependencies:
   - $libs.spring.boot.kafka
   - org.slf4j:slf4j-api
   - org.jetbrains.kotlinx:kotlinx-coroutines-core
-
-settings:
-  kotlin:
-    optIns: [ kotlin.uuid.ExperimentalUuidApi ]

@@ -29,7 +29,7 @@ class KafkaProducerFactory(private val kafkaProperties: KafkaProperties): AutoCl
         return KafkaTemplate(factory as ProducerFactory<K, V>)
     }
 
-    fun <K : Any, V : Any> createTopicProducer(topic: TopicProperties): KafkaProducer<K, V> {
+    fun <K : Any, V : Any> createProducer(topic: TopicProperties): KafkaProducer<K, V> {
         val template = createTemplate<K, V>(topic)
         return KafkaProducer(topic, template)
     }
