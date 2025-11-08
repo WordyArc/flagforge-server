@@ -7,3 +7,7 @@ settings:
     powerAssert:
       enabled: true
     optIns: [ kotlin.uuid.ExperimentalUuidApi, kotlin.time.ExperimentalTime ]
+
+dependencies:
+  - $kotlin.reflect
+  - org.jetbrains.kotlinx:kotlinx.reflect.lite:1.1.0
