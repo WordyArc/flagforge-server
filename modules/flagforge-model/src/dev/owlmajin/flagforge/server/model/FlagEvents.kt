@@ -1,6 +1,7 @@
 package dev.owlmajin.flagforge.server.model
 
-import kotlin.time.Instant
+import java.time.Instant
+
 
 sealed interface FlagEvent {
     val eventId: String
@@ -28,7 +29,7 @@ data class FlagCreatedEvent(
     val salt: String
 ) : FlagEvent
 
-data class FlagRulesChangedEvent(
+data class UpdateFlagRulesCommand(
     override val eventId: String,
     override val commandId: CommandId,
     override val flagId: FlagId,

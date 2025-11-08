@@ -14,7 +14,7 @@ import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @EnableConfigurationProperties(PersistenceProperties::class)
-@ComponentScan("dev.owlmajin.flagforge.server.common.kafka.")
+@ComponentScan("dev.owlmajin.flagforge.server.common.kafka")
 class CommonKafkaConfiguration {
 
     @Bean(destroyMethod = "close")

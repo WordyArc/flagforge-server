@@ -35,7 +35,7 @@ data class TopicProperties(
         )
     )
 
-    fun overrideWith(other: TopicProperties): TopicProperties = copyWith(defaults ?: other.defaults)
+    fun overrideWith(other: TopicProperties): TopicProperties = other.copyWith(defaults ?: other.defaults)
 
     private fun copyWith(defaultConfig: TopicDefaults?): TopicProperties = copy(defaults = defaultConfig)
 

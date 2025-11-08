@@ -20,17 +20,17 @@ class FlagCommandRepositoryImpl(
 ) : FlagCommandRepository {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(FlagCommandRepositoryImpl::class.java)
     }
 
     private val producer by lazy { producerFactory.createProducer<String, String>(persistenceProperties.flagCommands) }
 
     override suspend fun send(command: FlagCommand) {
-        val key = command.flagId.value.toString()
+        val key = command.flagId.value
         val payload = encoder.encode(command)
 
         producer.sendAwait(key, payload)
 
-        log.debug("Flag command sen. type=${command::class.simpleName}, flagId=${command.flagId}, commandId=${command.commandId}")
+        log.debug("Flag command sent. type=${command::class.simpleName}, flagId=${command.flagId}, commandId=${command.commandId}")
     }
 }

@@ -1,11 +1,15 @@
 package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
-import dev.owlmajin.flagforge.server.model.*
+import dev.owlmajin.flagforge.server.model.ActorId
+import dev.owlmajin.flagforge.server.model.CreateCommand
+import dev.owlmajin.flagforge.server.model.EnvironmentKey
+import dev.owlmajin.flagforge.server.model.FlagKey
+import dev.owlmajin.flagforge.server.model.ProjectId
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
 import dev.owlmajin.flagforge.server.persistence.repository.FlagCommandRepository
 import org.springframework.stereotype.Service
-import kotlin.time.Clock
+import java.time.Instant
 
 @Service
 class FlagCommandService(
@@ -25,7 +29,7 @@ class FlagCommandService(
         val command = CreateCommand(
             commandId = commandId,
             actor = actor,
-            timestamp = Clock.System.now(),
+            timestamp = Instant.now(),
             flagId = flagId,
             projectId = projectId,
             environmentKey = environmentKey,

@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import kotlin.time.Instant
+import java.time.Instant
 
 enum class FlagType {
     BOOLEAN,

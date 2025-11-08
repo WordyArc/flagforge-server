@@ -1,6 +1,6 @@
 package dev.owlmajin.flagforge.server.model
 
-import kotlin.time.Instant
+import java.time.Instant
 
 sealed interface FlagCommand {
     val commandId: CommandId
@@ -34,7 +34,7 @@ data class UploadFlagRulesCommand(
     override val flagId: FlagId,
     override val expectedVersion: Long,
     val rules: List<FlagRule>,
-    val defaultVersion: String?
+    val defaultVariant: String?
 ): FlagCommand
 
 data class ToggleFlagCommand(

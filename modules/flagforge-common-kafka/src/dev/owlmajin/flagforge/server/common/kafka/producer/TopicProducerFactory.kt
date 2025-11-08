@@ -19,6 +19,7 @@ class TopicProducerFactory(private val kafkaProperties: KafkaProperties): AutoCl
 
 
     fun <K : Any, V : Any> createProducer(topic: TopicProperties): TopicProducer<K, V> {
+        val normalizedTopic = topic.applyDefaults()
         val template = createTemplate<K, V>(topic)
         return TopicProducer(topic, template)
     }

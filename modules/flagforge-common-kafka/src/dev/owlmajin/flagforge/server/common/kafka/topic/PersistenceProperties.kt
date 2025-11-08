@@ -9,9 +9,9 @@ private const val COMPACT_POLICY = "compact"
 
 @ConfigurationProperties("app.persistence")
 class PersistenceProperties {
-    val enabled: Boolean = true
-    val autoCreateTopics: Boolean = true
-    val kafka: KafkaProperties = KafkaProperties()
+    var enabled: Boolean = true
+    var autoCreateTopics: Boolean = true
+    var kafka: KafkaProperties = KafkaProperties()
 
     var flagCommands = TopicProperties()
         set(value) {
