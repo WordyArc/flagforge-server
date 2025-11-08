@@ -7,4 +7,5 @@ apply:
 dependencies:
   - ../flagforge-model
 
+  - $libs.kotlinx.coroutines.core
   - $libs.spring.context

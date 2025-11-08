@@ -3,7 +3,9 @@ spring-bom = "4.0.0-RC2"
 spring-cloud-bom = "2025.0.0"
 
 [libraries]
+# --- kotlin ---
 kotlin-bom = "org.jetbrains.kotlin:kotlin-bom"
+kotlinx-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
 # --- spring dependencies ---
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-bom" }

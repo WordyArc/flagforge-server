@@ -11,4 +11,7 @@ class CommonConfiguration {
 
     @Bean
     fun timeProvider(): TimeProvider = SystemTimeProvider()
+
+    @Bean
+    fun dispatchers() = AppDispatchers()
 }
