@@ -26,5 +26,6 @@ spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 # -- other
 slf4j-api = "org.slf4j:slf4j-api"
 jakarta-validation-api = "jakarta.validation:jakarta.validation-api"
+hibernate-validator = "org.hibernate.validator:hibernate-validator"
 jackson-core = "tools.jackson.core:jackson-core"
 jackson-databind = "tools.jackson.core:jackson-databind"

@@ -2,7 +2,6 @@ package dev.owlmajin.flagforge.server.persistence.repository
 
 import dev.owlmajin.flagforge.server.common.kafka.producer.TopicProducerFactory
 import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
-import dev.owlmajin.flagforge.server.common.kafka.serde.KafkaPayloadEncoder
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FlagCommand
 import org.slf4j.LoggerFactory
@@ -16,7 +15,6 @@ interface FlagCommandRepository {
 class FlagCommandRepositoryImpl(
     private val persistenceProperties: PersistenceProperties,
     private val producerFactory: TopicProducerFactory,
-    private val encoder: KafkaPayloadEncoder,
 ) : FlagCommandRepository {
 
     companion object {
