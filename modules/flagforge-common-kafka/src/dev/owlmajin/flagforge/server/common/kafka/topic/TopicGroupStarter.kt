@@ -27,7 +27,7 @@ class TopicGroupStarter(
             isAutoCreateEnabled: Boolean,
             shouldValidate: Boolean
         ): TopicGroupStarter {
-            val preparedTopics = topics.associateBy { it.name }
+            val preparedTopics = topics.associateBy { it.effectiveName }
             val autoCreateTopicNames = if (isAutoCreateEnabled) preparedTopics.keys else emptySet()
             return TopicGroupStarter(
                 groupName = groupName,

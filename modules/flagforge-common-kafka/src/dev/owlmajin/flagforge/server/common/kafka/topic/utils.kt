@@ -9,7 +9,7 @@ private val log = LoggerFactory.getLogger("dev.owlmajin.flagforge.server.common.
 internal fun TopicProperties.toNewTopic(): NewTopic {
     applyDefaults()
 
-    val newTopic = NewTopic(name, partitions, replicationFactor)
+    val newTopic = NewTopic(effectiveName, partitions, replicationFactor)
     if (topicConfig.isNotEmpty()) {
         newTopic.configs(topicConfig)
     }

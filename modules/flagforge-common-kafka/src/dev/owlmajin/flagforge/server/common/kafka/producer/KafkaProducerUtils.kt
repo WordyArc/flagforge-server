@@ -6,25 +6,25 @@ import org.springframework.kafka.support.SendResult
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.resumeWithException
 
-suspend fun <K : Any, V : Any> KafkaProducer<K, V>.sendAwait(
+suspend fun <K : Any, V : Any> KafkaTopicProducer<K, V>.sendAwait(
     key: K,
     value: V,
 ): SendResult<K, V> = send(key, value).await()
 
-suspend fun <K : Any, V : Any> KafkaProducer<K, V>.sendAwait(
+suspend fun <K : Any, V : Any> KafkaTopicProducer<K, V>.sendAwait(
     key: K,
     value: V,
     extraHeaders: Map<String, Any?>,
 ): SendResult<K, V> = send(key, value, extraHeaders).await()
 
-suspend fun <K : Any, V : Any> KafkaProducer<K, V>.sendAllAwait(records: List<Pair<K, V>>) {
+suspend fun <K : Any, V : Any> KafkaTopicProducer<K, V>.sendAllAwait(records: List<Pair<K, V>>) {
     if (records.isEmpty()) return
 
     for ((key, value) in records) {
         try {
             send(key, value).await()
         } catch (ex: Exception) {
-            throw KafkaException("Failed to send record to topic ${topic.name}", ex)
+            throw KafkaException("Failed to send record to topic ${topic.effectiveName}", ex)
         }
     }
 }
@@ -33,7 +33,8 @@ private suspend fun <K : Any, V : Any> CompletableFuture<SendResult<K, V>>.await
     suspendCancellableCoroutine { cont ->
         whenComplete { result, error ->
             if (error != null) cont.resumeWithException(error)
-            else cont.resumeWith(Result.success(
+            else cont.resumeWith(
+                Result.success(
                 requireNotNull(result) { "SendResult must not be null" }
             ))
         }
