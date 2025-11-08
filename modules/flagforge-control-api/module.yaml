@@ -11,4 +11,9 @@ dependencies:
   - ../flagforge-model
 
   - $libs.spring.cloud.gateway.mvc
+  - tools.jackson.module:jackson-module-kotlin
   - $libs.jakarta.validation.api
+  - org.hibernate.validator:hibernate-validator
+  # see https://github.com/spring-projects/spring-framework/issues/33203
+  # - io.projectreactor:reactor-core
+  - org.jetbrains.kotlinx:kotlinx-coroutines-reactor

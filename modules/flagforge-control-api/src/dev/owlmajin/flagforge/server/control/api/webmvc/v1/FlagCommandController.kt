@@ -5,7 +5,6 @@ import dev.owlmajin.flagforge.server.control.api.webmvc.API
 import dev.owlmajin.flagforge.server.control.api.webmvc.V_1
 import dev.owlmajin.flagforge.server.model.ActorId
 import dev.owlmajin.flagforge.server.model.EnvironmentKey
-import dev.owlmajin.flagforge.server.model.FlagCommand
 import dev.owlmajin.flagforge.server.model.ProjectId
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagResponse
