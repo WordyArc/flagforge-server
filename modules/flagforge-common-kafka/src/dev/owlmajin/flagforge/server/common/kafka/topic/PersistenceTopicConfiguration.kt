@@ -42,6 +42,17 @@ class PersistenceTopicConfiguration {
         }
     }
 
+    @Profile("control-api")
+    @Configuration
+    class ControlAPiConfiguration {
+        @Bean
+        fun topicGroup() = TopicGroup("persistence") {
+            buildSet {
+                add(it.flagCommands)
+            }
+        }
+    }
+
     @Profile("processor")
     @Configuration
     class ProcessorConfiguration {

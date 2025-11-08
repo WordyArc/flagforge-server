@@ -8,5 +8,5 @@ dependencies:
   - org.jetbrains.kotlinx:kotlinx-coroutines-core
   - $libs.spring.kafka
   - $libs.spring.boot.kafka
-  - org.slf4j:slf4j-api
   - $libs.jackson.databind
+  - $libs.slf4j.api

@@ -1,7 +1,6 @@
 package dev.owlmajin.flagforge.server.common.kafka.producer
 
 import dev.owlmajin.flagforge.server.common.kafka.topic.TopicProperties
-import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.slf4j.LoggerFactory
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
@@ -13,15 +12,15 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class KafkaProducerFactory(private val kafkaProperties: KafkaProperties): AutoCloseable {
+class TopicProducerFactory(private val kafkaProperties: KafkaProperties): AutoCloseable {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val factories = ConcurrentHashMap<String, DefaultKafkaProducerFactory<*, *>>()
 
 
-    fun <K : Any, V : Any> createProducer(topic: TopicProperties): KafkaTopicProducer<K, V> {
+    fun <K : Any, V : Any> createProducer(topic: TopicProperties): TopicProducer<K, V> {
         val template = createTemplate<K, V>(topic)
-        return KafkaTopicProducer(topic, template)
+        return TopicProducer(topic, template)
     }
 
     private fun <K : Any, V : Any> createTemplate(topic: TopicProperties): KafkaOperations<K, V> {

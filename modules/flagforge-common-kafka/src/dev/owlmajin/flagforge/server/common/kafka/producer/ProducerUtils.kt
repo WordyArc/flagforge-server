@@ -6,18 +6,18 @@ import org.springframework.kafka.support.SendResult
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.resumeWithException
 
-suspend fun <K : Any, V : Any> KafkaTopicProducer<K, V>.sendAwait(
+suspend fun <K : Any, V : Any> TopicProducer<K, V>.sendAwait(
     key: K,
     value: V,
 ): SendResult<K, V> = send(key, value).await()
 
-suspend fun <K : Any, V : Any> KafkaTopicProducer<K, V>.sendAwait(
+suspend fun <K : Any, V : Any> TopicProducer<K, V>.sendAwait(
     key: K,
     value: V,
     extraHeaders: Map<String, Any?>,
 ): SendResult<K, V> = send(key, value, extraHeaders).await()
 
-suspend fun <K : Any, V : Any> KafkaTopicProducer<K, V>.sendAllAwait(records: List<Pair<K, V>>) {
+suspend fun <K : Any, V : Any> TopicProducer<K, V>.sendAllAwait(records: List<Pair<K, V>>) {
     if (records.isEmpty()) return
 
     for ((key, value) in records) {

@@ -8,7 +8,7 @@ import org.springframework.kafka.core.KafkaOperations
 import org.springframework.kafka.support.SendResult
 import java.util.concurrent.CompletableFuture
 
-class KafkaTopicProducer<K: Any, V: Any>(
+class TopicProducer<K: Any, V: Any>(
     internal val topic: TopicProperties,
     private val kafkaOperations: KafkaOperations<K, V>,
 ) {
