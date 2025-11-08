@@ -23,6 +23,6 @@ class CommonKafkaConfiguration {
     @Bean
     fun kafkaPayloadEncoder(jsonMapper: JsonMapper): KafkaPayloadEncoder = JacksonPayloadEncoder(jsonMapper)
 
-    @Bean
+    @Bean(destroyMethod = "close")
     fun topicProducerFactory(kafkaProperties: KafkaProperties) = TopicProducerFactory(kafkaProperties)
 }
