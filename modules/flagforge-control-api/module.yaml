@@ -1,14 +1,14 @@
 product: jvm/app
 
-settings:
-  kotlin:
-    optIns: [ kotlin.time.ExperimentalTime, kotlin.uuid.ExperimentalUuidApi ]
-
 apply:
   - ../../common.module-template.yaml
   - ../../spring.module-template.yaml
 
 dependencies:
+  - ../flagforge-common
+  - ../flagforge-common-kafka
+  - ../flagforge-persistence
+  - ../flagforge-model
+
+  - $libs.spring.cloud.gateway.mvc
   - $libs.jakarta.validation.api
-  - $libs.jackson.core
-  - $libs.jackson.databind

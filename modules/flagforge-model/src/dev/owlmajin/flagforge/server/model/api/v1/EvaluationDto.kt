@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.model.dto
+package dev.owlmajin.flagforge.server.model.api.v1
 
 data class EvaluationDto(
     val projectKey: String,
