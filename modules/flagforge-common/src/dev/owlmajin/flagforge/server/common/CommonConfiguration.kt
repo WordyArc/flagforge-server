@@ -9,4 +9,6 @@ class CommonConfiguration {
     @Bean
     fun idGenerator(): IdGenerator = DefaultIdGenerator()
 
+    @Bean
+    fun timeProvider(): TimeProvider = SystemTimeProvider()
 }
