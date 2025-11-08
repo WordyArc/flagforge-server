@@ -6,4 +6,4 @@ settings:
     languageVersion: 2.3
     powerAssert:
       enabled: true
-    optIns: [ kotlin.uuid.ExperimentalUuidApi ]
+    optIns: [ kotlin.uuid.ExperimentalUuidApi, kotlin.time.ExperimentalTime ]

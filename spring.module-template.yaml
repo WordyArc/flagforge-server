@@ -12,3 +12,4 @@ settings:
       enabled: true
       presets:
         - jpa
+    freeCompilerArgs: [ -Xannotation-default-target=param-property ]
