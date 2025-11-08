@@ -34,7 +34,7 @@ class FlagCommandController(private val flagCommandService: FlagCommandService) 
         val actor = ActorId(actorHeader?.takeIf { it.isNotBlank() } ?: "system")
 
         val result = flagCommandService.createFlag(
-            projectId = ProjectId(Uuid.parse(projectId)),
+            projectId = ProjectId(projectId),
             environmentKey = EnvironmentKey(environmentKey),
             actor = actor,
             request = request,

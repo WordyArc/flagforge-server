@@ -10,8 +10,8 @@ interface IdGenerator {
 }
 
 class DefaultIdGenerator : IdGenerator {
-    override fun nextCommandId() = CommandId(generateUuid())
-    override fun nextFlagId() = FlagId(generateUuid())
+    override fun nextCommandId() = CommandId(generateUuid().toString())
+    override fun nextFlagId() = FlagId(generateUuid().toString())
 }
 
 private fun generateUuid() = Uuid.random()

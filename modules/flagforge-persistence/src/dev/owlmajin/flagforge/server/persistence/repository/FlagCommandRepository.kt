@@ -23,7 +23,7 @@ class FlagCommandRepositoryImpl(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    private val producer by lazy { producerFactory.createProducer<String, ByteArray>(persistenceProperties.flagCommands) }
+    private val producer by lazy { producerFactory.createProducer<String, String>(persistenceProperties.flagCommands) }
 
     override suspend fun send(command: FlagCommand) {
         val key = command.flagId.value.toString()

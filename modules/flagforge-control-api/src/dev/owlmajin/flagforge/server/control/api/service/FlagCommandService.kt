@@ -34,7 +34,7 @@ class FlagCommandService(
             enabled = request.enabled,
             rules = request.rules,
             defaultVariant = request.defaultVariant,
-            salt = request.salt ?: flagId.value.toString(),
+            salt = request.salt ?: flagId.value,
         )
         flagCommandRepository.send(command)
 

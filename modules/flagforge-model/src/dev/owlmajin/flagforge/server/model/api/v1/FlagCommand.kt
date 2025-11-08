@@ -10,8 +10,9 @@ data class CreateFlagRequest(
     val key: String,
     val type: FlagType,
     val enabled: Boolean = true,
+    @Size(min = 1)
     val defaultVariant: String? = null,
-    @Size
+    @Size(max = 100)
     val rules: List<FlagRule> = emptyList(),
     val salt: String? = null,
 )

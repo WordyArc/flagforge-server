@@ -1,21 +1,19 @@
 package dev.owlmajin.flagforge.server.model
 
-import kotlin.uuid.Uuid
+@JvmInline
+value class ProjectId(val value: String)
 
 @JvmInline
-value class ProjectId(val value: Uuid)
+value class EnvironmentId(val value: String)
 
 @JvmInline
-value class EnvironmentId(val value: Uuid)
+value class SegmentId(val value: String)
 
 @JvmInline
-value class SegmentId(val value: Uuid)
+value class FlagId(val value: String)
 
 @JvmInline
-value class FlagId(val value: Uuid)
-
-@JvmInline
-value class SdkKeyId(val value: Uuid)
+value class SdkKeyId(val value: String)
 
 @JvmInline
 value class ProjectKey(val value: String)
@@ -30,4 +28,4 @@ value class FlagKey(val value: String)
 value class ActorId(val value: String)
 
 @JvmInline
-value class CommandId(val value: Uuid)
+value class CommandId(val value: String)
