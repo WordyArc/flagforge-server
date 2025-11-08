@@ -10,3 +10,5 @@ dependencies:
 
   - $libs.spring.context
   - $libs.spring.kafka
+  - $libs.slf4j.api
+  - $libs.spring.boot.kafka
