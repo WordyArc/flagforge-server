@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: flagforge-processor
+
+app:
+  persistence:
+    enabled: true
+    auto-create-topics: true
+    kafka:
+      bootstrap-servers: host.docker.internal:9092
+      streams:
+        application-id: flagforge-processor
+        properties:
+          processing.guarantee: exactly_once_v2
+

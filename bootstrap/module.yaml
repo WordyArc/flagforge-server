@@ -5,13 +5,17 @@ apply:
   - ../spring.module-template.yaml
 
 dependencies:
+  - ../modules/flagforge-control-api
   - ../modules/flagforge-common-kafka
 
-#  - $libs.spring.boot.autoconfigure
-#  - org.springframework:spring-core
-#  - org.springframework:spring-context
-#  - org.yaml:snakeyaml
+  #  - $libs.spring.boot.autoconfigure
+  #  - org.springframework:spring-core
+  #  - org.springframework:spring-context
+  #  - org.yaml:snakeyaml
   - $libs.spring.boot.starter.web
+
+  # только типы для exclude
+  - $libs.spring.cloud.gateway.mvc
 
 test-dependencies:
   - $libs.spring.boot.starter.test
