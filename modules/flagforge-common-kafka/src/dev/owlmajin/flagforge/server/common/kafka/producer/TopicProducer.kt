@@ -14,7 +14,7 @@ class TopicProducer<K: Any, V: Any>(
 ) {
     fun send(key: K, value: V): CompletableFuture<SendResult<K, V>> = send(key, value, topic.defaultHeaders())
 
-    fun send(key: K, value: V, headers: List<Header>,): CompletableFuture<SendResult<K, V>> {
+    fun send(key: K, value: V, headers: List<Header>): CompletableFuture<SendResult<K, V>> {
         val record = ProducerRecord<K, V>(topic.effectiveName, null, null, key, value, headers)
 
         return kafkaOperations.send(record)

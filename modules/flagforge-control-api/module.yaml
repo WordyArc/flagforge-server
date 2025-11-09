@@ -15,5 +15,6 @@ dependencies:
   - $libs.jakarta.validation.api
   - $libs.hibernate.validator
   # see https://github.com/spring-projects/spring-framework/issues/33203
-  # - io.projectreactor:reactor-core
-  - $libs.kotlinx.coroutines.core
+#  - io.projectreactor:reactor-core
+#  - $libs.kotlinx.coroutines.core
+  - org.jetbrains.kotlinx:kotlinx-coroutines-reactor

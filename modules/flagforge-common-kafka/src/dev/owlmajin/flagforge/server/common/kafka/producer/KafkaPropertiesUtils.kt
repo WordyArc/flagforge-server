@@ -6,7 +6,7 @@ import kotlin.uuid.Uuid
 
 private const val DEFAULT_CLIENT_ID_PREFIX = "flagforge-producer"
 
-internal fun KafkaProperties.buildProducerPropertiesWithUniqueClientId(clientSuffix: String, ): MutableMap<String, Any> {
+internal fun KafkaProperties.buildProducerPropertiesWithUniqueClientId(clientSuffix: String): MutableMap<String, Any> {
     val props = buildProducerProperties().toMutableMap()
 
     val prefix = (props[ProducerConfig.CLIENT_ID_CONFIG] as? String)
