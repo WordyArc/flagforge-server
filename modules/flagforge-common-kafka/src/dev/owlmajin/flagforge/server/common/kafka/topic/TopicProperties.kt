@@ -51,7 +51,7 @@ data class TopicProperties(
         return this
     }
 
-    internal val effectiveName: String
+    val effectiveName: String
         get() = name.ifBlank { defaults?.topicName ?: "<unnamed>" }
 
 }

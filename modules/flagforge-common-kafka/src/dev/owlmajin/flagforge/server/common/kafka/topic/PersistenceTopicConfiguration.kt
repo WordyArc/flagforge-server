@@ -44,7 +44,7 @@ class PersistenceTopicConfiguration {
 
     @Profile("control-api")
     @Configuration
-    class ControlAPiConfiguration {
+    class ControlAPiTopicsConfiguration {
         @Bean
         fun topicGroup() = TopicGroup("persistence") {
             buildSet {
@@ -55,7 +55,7 @@ class PersistenceTopicConfiguration {
 
     @Profile("processor")
     @Configuration
-    class ProcessorConfiguration {
+    class ProcessorTopicsConfiguration {
         @Bean
         fun topicGroup() = TopicGroup("persistence") {
             buildSet {
