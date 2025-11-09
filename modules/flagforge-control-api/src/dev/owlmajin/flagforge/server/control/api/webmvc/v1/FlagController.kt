@@ -1,19 +1,24 @@
 package dev.owlmajin.flagforge.server.control.api.webmvc.v1
 
-import dev.owlmajin.flagforge.server.control.api.service.FlagCommandService
+import dev.owlmajin.flagforge.server.control.api.service.FlagService
 import dev.owlmajin.flagforge.server.control.api.webmvc.API
+import dev.owlmajin.flagforge.server.control.api.webmvc.CONTROL
 import dev.owlmajin.flagforge.server.control.api.webmvc.V_1
+import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
-import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagResponse
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-
-private const val CONTROL = "/control"
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping(path = [API + V_1 + CONTROL])
-class FlagCommandController(private val flagCommandService: FlagCommandService) {
+class FlagController(private val flagService: FlagService) {
 
     @PostMapping(path = ["/projects/{projectId}/envs/{environmentKey}/flags"])
     suspend fun createFlag(
@@ -21,22 +26,17 @@ class FlagCommandController(private val flagCommandService: FlagCommandService) 
         @PathVariable projectId: String,
         @PathVariable environmentKey: String,
         @Valid @RequestBody request: CreateFlagRequest,
-    ): ResponseEntity<CreateFlagResponse> {
+    ): ResponseEntity<CommandResponse> {
         val actorId = actorHeader?.takeIf { it.isNotBlank() } ?: "system"
 
-        val result = flagCommandService.createFlag(
+        val result = flagService.createFlag(
             projectId = projectId,
             environmentKey = environmentKey,
             actorId = actorId,
             request = request,
         )
-        val resourceName = "projects/$projectId/envs/$environmentKey/flags/${result.flagId}"
 
-        return ResponseEntity.accepted().body(CreateFlagResponse(
-            commandId = result.id,
-            flagId = result.flagId,
-            resourceName = resourceName
-        ))
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(result)
     }
 
 }

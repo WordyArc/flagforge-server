@@ -2,12 +2,15 @@ package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
 import dev.owlmajin.flagforge.server.model.CreateFlagCommand
+import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
+import dev.owlmajin.flagforge.server.model.api.v1.flagResourceName
 import dev.owlmajin.flagforge.server.persistence.repository.FlagRepository
 import org.springframework.stereotype.Service
 
+
 @Service
-class FlagCommandService(
+class FlagService(
     private val idGenerator: IdGenerator,
     private val flagRepository: FlagRepository,
 ) {
@@ -17,7 +20,7 @@ class FlagCommandService(
         environmentKey: String,
         actorId: String,
         request: CreateFlagRequest
-    ): CreateFlagCommand {
+    ): CommandResponse {
         val flagId = idGenerator.next()
 
         val command = CreateFlagCommand(
@@ -34,7 +37,14 @@ class FlagCommandService(
         )
         flagRepository.create(command)
 
-        return command
+        return CommandResponse(
+            commandId = command.id,
+            resourceName = flagResourceName(
+                projectId = projectId,
+                environmentKey = environmentKey,
+                flagId = flagId,
+            ),
+        )
     }
 
 }

@@ -24,9 +24,7 @@ class FlagRepositoryImpl(
     private val producer by lazy { producerFactory.createProducer<String, FlagCommand>(persistenceProperties.flagCommands) }
 
     override suspend fun create(command: FlagCommand) {
-        val key = command.flagId
-
-        producer.sendAwait(key, command)
+        producer.sendAwait(command.flagId, command)
 
         log.debug("Flag command sent. type=${command::class.simpleName}, flagId=${command.flagId}, commandId=${command.id}")
     }
