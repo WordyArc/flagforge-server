@@ -8,10 +8,22 @@ Content-Type: application/json
   "name": "FlagForge Demo Project"
 }
 
+### Create environment
+@eProjectId = 474e8c8a-f8a1-4eb5-99cb-4c4c838a229c
+
+POST http://localhost:8080/api/v1/control/projects/{{eProjectId}}/envs
+X-Actor-Id: test-user
+Content-Type: application/json
+
+{
+  "key": "dev",
+  "name": "Development"
+}
+
 ### Create flag
-@projectId = 474e8c8a-f8a1-4eb5-99cb-4c4c838a229c
+@fProjectId = 474e8c8a-f8a1-4eb5-99cb-4c4c838a229c
 @environmentKey = dev
-POST http://localhost:8080/api/v1/control/projects/{{projectId}}/envs/{{environmentKey}}/flags
+POST http://localhost:8080/api/v1/control/projects/{{fProjectId}}/envs/{{environmentKey}}/flags
 X-Actor-Id: test-user
 Content-Type: application/json
 
