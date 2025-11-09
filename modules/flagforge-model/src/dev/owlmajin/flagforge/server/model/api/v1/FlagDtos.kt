@@ -1,5 +1,6 @@
 package dev.owlmajin.flagforge.server.model.api.v1
 
+import dev.owlmajin.flagforge.server.model.CreateFlagCommand
 import dev.owlmajin.flagforge.server.model.FlagRule
 import dev.owlmajin.flagforge.server.model.FlagType
 import jakarta.validation.constraints.NotBlank
@@ -19,8 +20,30 @@ data class CreateFlagRequest(
 
 data class CreateFlagResponse(
     val apiVersion: String = "v1",
-    val commandId: String,
-    val flagId: String,
-    val resourceName: String,
     val status: String = "ACCEPTED", // TODO в enum
+    val commandId: String,
+    val flag: FlagResource
+)
+
+data class CreateFlagResult(
+    val command: CreateFlagCommand,
+    val resource: FlagResource,
+)
+
+data class CommandResponse(
+    val apiVersion: String = "v1",
+    val status: String = "ACCEPTED",
+    val commandId: String,
+    val resourceName: String,
+)
+
+data class SetFlagStateRequest(
+    val enabled: Boolean,
+    val expectedVersion: Long,
+)
+
+data class SetFlagRulesRequest(
+    @field:Size(max = 100) val rules: List<FlagRule>,
+    val defaultVariant: String?,
+    val expectedVersion: Long,
 )
