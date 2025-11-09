@@ -1,17 +1,11 @@
 package dev.owlmajin.flagforge.server.common
 
-import dev.owlmajin.flagforge.server.model.CommandId
-import dev.owlmajin.flagforge.server.model.FlagId
 import kotlin.uuid.Uuid
 
 interface IdGenerator {
-    fun nextCommandId() : CommandId
-    fun nextFlagId() : FlagId
+    fun next() : String
 }
 
 class DefaultIdGenerator : IdGenerator {
-    override fun nextCommandId() = CommandId(generateUuid().toString())
-    override fun nextFlagId() = FlagId(generateUuid().toString())
+    override fun next() = Uuid.random().toString()
 }
-
-private fun generateUuid() = Uuid.random()
