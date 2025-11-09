@@ -1,56 +1,84 @@
 package dev.owlmajin.flagforge.server.model
 
 import java.time.Instant
+import kotlin.uuid.Uuid
 
-sealed interface FlagCommand {
-    val commandId: CommandId
-    val actor: ActorId
-    val timestamp: Instant
-    val flagId: FlagId
-    val expectedVersion: Long?
-}
 
-data class CreateCommand(
-    override val commandId: CommandId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val flagId: FlagId,
-    val projectId: ProjectId,
-    val environmentKey: EnvironmentKey,
-    val flagKey: FlagKey,
+sealed class FlagCommand protected constructor(
+    id: String,
+    actorId: String,
+    timestamp: Instant,
+    expectedVersion: Long?,
+    correlationId: String? = null,
+    val flagId: String,
+) : Command(
+    id = id,
+    aggregateId = flagId,
+    aggregateType = AggregateType.FLAG,
+    actorId = actorId,
+    timestamp = timestamp,
+    correlationId = correlationId,
+    expectedVersion = expectedVersion,
+)
+
+class CreateFlagCommand(
+    flagId: String,
+    actorId: String,
+    correlationId: String? = null,
+    val projectId: String,
+    val environmentKey: String,
+    val flagKey: String,
     val type: FlagType,
     val enabled: Boolean,
     val rules: List<FlagRule>,
     val defaultVariant: String?,
     val salt: String,
-): FlagCommand {
-    override val expectedVersion: Long? = null
-}
+) : FlagCommand(
+    id = Uuid.random().toString(),
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    expectedVersion = null,
+    correlationId = correlationId,
+)
 
-data class UploadFlagRulesCommand(
-    override val commandId: CommandId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val flagId: FlagId,
-    override val expectedVersion: Long,
+class UpdateFlagRulesCommand(
+    flagId: String,
+    actorId: String,
+    expectedVersion: Long,
+    correlationId: String? = null,
     val rules: List<FlagRule>,
-    val defaultVariant: String?
-): FlagCommand
+    val defaultVariant: String?,
+) : FlagCommand(
+    id = Uuid.random().toString(),
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    expectedVersion = expectedVersion,
+    correlationId = correlationId,
+)
 
-data class ToggleFlagCommand(
-    override val commandId: CommandId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val flagId: FlagId,
-    override val expectedVersion: Long,
+class ToggleFlagCommand(
+    flagId: String,
+    actorId: String,
+    expectedVersion: Long,
     val enabled: Boolean,
-): FlagCommand
+) : FlagCommand(
+    id = Uuid.random().toString(),
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    expectedVersion = expectedVersion,
+)
 
-data class DeleteFlagCommand(
-    override val commandId: CommandId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val flagId: FlagId,
-    override val expectedVersion: Long,
-): FlagCommand
-
+class DeleteFlagCommand(
+    flagId: String,
+    actorId: String,
+    expectedVersion: Long,
+) : FlagCommand(
+    id = Uuid.random().toString(),
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    expectedVersion = expectedVersion,
+)

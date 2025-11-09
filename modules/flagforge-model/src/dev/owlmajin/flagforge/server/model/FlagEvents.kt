@@ -1,71 +1,108 @@
 package dev.owlmajin.flagforge.server.model
 
 import java.time.Instant
+import kotlin.uuid.Uuid
 
 
-sealed interface FlagEvent {
-    val eventId: String
-    val commandId: CommandId
-    val flagId: FlagId
-    val actor: ActorId
-    val timestamp: Instant
-    val version: Long
-}
+sealed class FlagEvent protected constructor(
+    id: String,
+    commandId: String,
+    actorId: String,
+    timestamp: Instant,
+    version: Long,
+    correlationId: String? = null,
+    val flagId: String,
+) : Event(
+    id = id,
+    aggregateId = flagId,
+    aggregateType = AggregateType.FLAG,
+    actorId = actorId,
+    timestamp = timestamp,
+    correlationId = correlationId,
+    version = version,
+    commandId = commandId,
+)
 
-data class FlagCreatedEvent(
-    override val eventId: String,
-    override val commandId: CommandId,
-    override val flagId: FlagId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val version: Long,
-    val projectId: ProjectId,
-    val environmentKey: EnvironmentKey,
-    val flagKey: FlagKey,
+class FlagCreatedEvent(
+    commandId: String,
+    flagId: String,
+    actorId: String,
+    version: Long,
+    val projectId: String,
+    val environmentKey: String,
+    val flagKey: String,
     val type: FlagType,
     val enabled: Boolean,
     val rules: List<FlagRule>,
     val defaultVariant: String?,
-    val salt: String
-) : FlagEvent
+    val salt: String,
+) : FlagEvent(
+    id = Uuid.random().toString(),
+    commandId = commandId,
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    version = version,
+)
 
-data class UpdateFlagRulesCommand(
-    override val eventId: String,
-    override val commandId: CommandId,
-    override val flagId: FlagId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val version: Long,
+class FlagRulesUpdatedEvent(
+    id: String,
+    commandId: String,
+    flagId: String,
+    actorId: String,
+    version: Long,
     val rules: List<FlagRule>,
-    val defaultVariant: String?
-) : FlagEvent
+    val defaultVariant: String?,
+) : FlagEvent(
+    id = Uuid.random().toString(),
+    commandId = commandId,
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    version = version,
+)
 
-data class FlagToggledEvent(
-    override val eventId: String,
-    override val commandId: CommandId,
-    override val flagId: FlagId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val version: Long,
-    val enabled: Boolean
-) : FlagEvent
+class FlagToggledEvent(
+    commandId: String,
+    flagId: String,
+    actorId: String,
+    version: Long,
+    val enabled: Boolean,
+) : FlagEvent(
+    id = Uuid.random().toString(),
+    commandId = commandId,
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    version = version,
+)
 
-data class FlagDeletedEvent(
-    override val eventId: String,
-    override val commandId: CommandId,
-    override val flagId: FlagId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val version: Long
-) : FlagEvent
+class FlagDeletedEvent(
+    commandId: String,
+    flagId: String,
+    actorId: String,
+    version: Long,
+) : FlagEvent(
+    id = Uuid.random().toString(),
+    commandId = commandId,
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    version = version,
+)
 
-data class CommandRejectedEvent(
-    override val eventId: String,
-    override val commandId: CommandId,
-    override val flagId: FlagId,
-    override val actor: ActorId,
-    override val timestamp: Instant,
-    override val version: Long,
+class CommandRejectedEvent(
+    commandId: String,
+    flagId: String,
+    actorId: String,
+    version: Long,
     val reason: String,
-    val errorCode: String
-) : FlagEvent
+    val errorCode: String,
+) : FlagEvent(
+    id = Uuid.random().toString(),
+    commandId = commandId,
+    flagId = flagId,
+    actorId = actorId,
+    timestamp = Instant.now(),
+    version = version,
+)

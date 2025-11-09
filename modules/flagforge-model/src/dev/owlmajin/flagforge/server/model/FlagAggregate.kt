@@ -11,10 +11,10 @@ enum class FlagType {
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class FlagAggregate(
-    val id: FlagId,
-    val projectId: ProjectId,
-    val environmentKey: EnvironmentKey,
-    val key: FlagKey,
+    val id: String,
+    val projectId: String,
+    val environmentKey: String,
+    val key: String,
     val type: FlagType,
     val enabled: Boolean,
     val rules: List<FlagRule>,
