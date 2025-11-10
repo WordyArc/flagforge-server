@@ -6,6 +6,7 @@ apply:
 
 dependencies:
   - ../modules/flagforge-control-api
+  - ../modules/flagforge-processor
   - ../modules/flagforge-common-kafka
 
   #  - $libs.spring.boot.autoconfigure

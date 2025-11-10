@@ -1,4 +1,17 @@
 product: jvm/app
 
 apply:
+  - ../../common.module-template.yaml
   - ../../spring.module-template.yaml
+
+dependencies:
+  - ../flagforge-model
+  - ../flagforge-common
+  - ../flagforge-common-kafka
+
+  - $libs.spring.context
+  - org.apache.kafka:kafka-streams
+  - $libs.spring.kafka
+  - $libs.spring.boot.kafka
+  - $libs.slf4j.api
+  - $libs.jackson.databind
