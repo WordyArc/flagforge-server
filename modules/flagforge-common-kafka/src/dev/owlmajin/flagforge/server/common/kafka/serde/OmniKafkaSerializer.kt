@@ -49,7 +49,26 @@ class OmniKafkaSerializer(val config: Map<String, Any> = emptyMap()) : Serialize
         objectSerializer.close()
     }
 
-    private fun serializeObject(topic: String, headers: Headers?, data: Any?): ByteArray =
-        if (headers != null) objectSerializer.serialize(topic, headers, data)
-        else objectSerializer.serialize(topic, data)
+    // ToDo fix!!
+    private fun serializeObject(topic: String, headers: Headers?, data: Any?): ByteArray {
+        println("=== OmniKafkaSerializer ===")
+        println("Serializing object: topic=$topic, type=${data?.javaClass?.name}")
+        println("Headers present: ${headers != null}")
+        
+        val result = if (headers != null) {
+            objectSerializer.serialize(topic, headers, data)
+        } else {
+            objectSerializer.serialize(topic, data)
+        }
+        
+        if (headers != null) {
+            val headersList = headers.toArray().map { h -> 
+                "${h.key()}=${h.value()?.let { String(it) } ?: "null"}" 
+            }
+            println("Headers after serialization: $headersList")
+        }
+        println("===========================")
+        
+        return result
+    }
 }
