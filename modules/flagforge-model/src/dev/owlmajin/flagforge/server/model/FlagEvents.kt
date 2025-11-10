@@ -46,7 +46,6 @@ class FlagCreatedEvent(
 )
 
 class FlagRulesUpdatedEvent(
-    id: String,
     commandId: String,
     flagId: String,
     actorId: String,
