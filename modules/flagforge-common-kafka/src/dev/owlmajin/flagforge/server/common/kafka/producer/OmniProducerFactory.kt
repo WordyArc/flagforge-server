@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.DisposableBean
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaOperations
@@ -60,7 +61,9 @@ class OmniProducerFactory(private val kafkaProperties: KafkaProperties) : AutoCl
     override fun close() {
         factories.values.forEach { factory ->
             try {
-                factory.destroy()
+                if (factory is DisposableBean) {
+                    factory.destroy()
+                }
             } catch (e: Exception) {
                 log.warn("Error while closing Kafka producer factory", e)
             }
