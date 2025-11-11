@@ -1,0 +1,5 @@
+server.port: 8184
+
+spring:
+  application:
+    name: flagforge-control-api

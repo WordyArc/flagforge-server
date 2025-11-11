@@ -1,3 +1,5 @@
+server.port: 8183
+
 spring:
   application:
     name: flagforge-processor
@@ -9,7 +11,10 @@ app:
     kafka:
       bootstrap-servers: host.docker.internal:9092
       streams:
-        application-id: flagforge-processor
+#        application-id: flagforge-processor-1
         properties:
           processing.guarantee: exactly_once_v2
+          default.deserialization.exception.handler: org.apache.kafka.streams.errors.LogAndFailExceptionHandler
+          default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+          auto.offset.reset: earliest
 
