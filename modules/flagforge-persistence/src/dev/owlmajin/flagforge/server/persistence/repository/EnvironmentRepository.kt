@@ -1,6 +1,6 @@
 package dev.owlmajin.flagforge.server.persistence.repository
 
-import dev.owlmajin.flagforge.server.common.kafka.producer.TopicProducerFactory
+import dev.owlmajin.flagforge.server.common.kafka.producer.OmniProducerFactory
 import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.EnvironmentCommand
@@ -14,7 +14,7 @@ interface EnvironmentRepository {
 @Component
 class EnvironmentRepositoryImpl(
     private val persistenceProperties: PersistenceProperties,
-    private val producerFactory: TopicProducerFactory,
+    private val omniProducerFactory: OmniProducerFactory,
 ) : EnvironmentRepository {
 
     companion object {
@@ -22,7 +22,7 @@ class EnvironmentRepositoryImpl(
     }
 
     private val producer by lazy {
-        producerFactory.createProducer<String, EnvironmentCommand>(persistenceProperties.flagCommands)
+        omniProducerFactory.createProducer(persistenceProperties.flagCommands)
     }
 
     override suspend fun create(command: EnvironmentCommand) {

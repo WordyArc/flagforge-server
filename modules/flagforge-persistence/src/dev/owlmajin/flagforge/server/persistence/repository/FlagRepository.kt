@@ -1,6 +1,6 @@
 package dev.owlmajin.flagforge.server.persistence.repository
 
-import dev.owlmajin.flagforge.server.common.kafka.producer.TopicProducerFactory
+import dev.owlmajin.flagforge.server.common.kafka.producer.OmniProducerFactory
 import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FlagCommand
@@ -14,14 +14,14 @@ interface FlagRepository {
 @Component
 class FlagRepositoryImpl(
     private val persistenceProperties: PersistenceProperties,
-    private val producerFactory: TopicProducerFactory,
+    private val producerFactory: OmniProducerFactory,
 ) : FlagRepository {
 
     companion object {
         private val log = LoggerFactory.getLogger(FlagRepositoryImpl::class.java)
     }
 
-    private val producer by lazy { producerFactory.createProducer<String, FlagCommand>(persistenceProperties.flagCommands) }
+    private val producer by lazy { producerFactory.createProducer(persistenceProperties.flagCommands) }
 
     override suspend fun create(command: FlagCommand) {
         producer.sendAwait(command.flagId, command)

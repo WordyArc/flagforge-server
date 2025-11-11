@@ -1,6 +1,6 @@
 package dev.owlmajin.flagforge.server.common.kafka.config
 
-import dev.owlmajin.flagforge.server.common.kafka.producer.TopicProducerFactory
+import dev.owlmajin.flagforge.server.common.kafka.producer.OmniProducerFactory
 import dev.owlmajin.flagforge.server.common.kafka.topic.KafkaConnect
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -19,5 +19,5 @@ class CommonKafkaConfiguration {
 
 
     @Bean(destroyMethod = "close")
-    fun topicProducerFactory(kafkaProperties: KafkaProperties) = TopicProducerFactory(kafkaProperties)
+    fun omniProducerFactory(kafkaProperties: KafkaProperties) = OmniProducerFactory(kafkaProperties)
 }

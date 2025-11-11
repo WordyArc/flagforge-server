@@ -14,24 +14,19 @@ import org.springframework.kafka.core.ProducerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
-// TODO: refactor т.к. теперь навешан универсальный сериализатор значений,
-//  то задание дженеричного типа только мешает и по сути проще задавать Any
-//  -> пределать в универсальный продюсер
 @Component
-class TopicProducerFactory(private val kafkaProperties: KafkaProperties) : AutoCloseable {
+class OmniProducerFactory(private val kafkaProperties: KafkaProperties) : AutoCloseable {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val factories = ConcurrentHashMap<String, DefaultKafkaProducerFactory<*, *>>()
+    private val factories = ConcurrentHashMap<String, ProducerFactory<Any, Any>>()
 
-
-    fun <K : Any, V : Any> createProducer(topic: TopicProperties): TopicProducer<K, V> {
+    fun createProducer(topic: TopicProperties): TopicProducer<Any, Any> {
         val normalizedTopic = topic.applyDefaults()
-        val template = createTemplate<K, V>(normalizedTopic)
+        val template = createTemplate(normalizedTopic)
         return TopicProducer(normalizedTopic, template)
     }
 
-    private fun <K : Any, V : Any> createTemplate(topic: TopicProperties): KafkaOperations<K, V> {
-        @Suppress("UNCHECKED_CAST")
+    private fun createTemplate(topic: TopicProperties): KafkaOperations<Any, Any> {
         val factory = factories.computeIfAbsent(topic.effectiveName) {
             val props = buildProducerProps(topic)
             log.info("Creating Kafka producer factory for topic=${topic.effectiveName} with client.id=${props[ProducerConfig.CLIENT_ID_CONFIG]}")
@@ -41,7 +36,7 @@ class TopicProducerFactory(private val kafkaProperties: KafkaProperties) : AutoC
                 StringSerializer() as Serializer<Any>,
                 OmniKafkaSerializer() as Serializer<Any>
             )
-        } as ProducerFactory<K, V>
+        }
 
         return KafkaTemplate(factory)
     }
@@ -60,7 +55,7 @@ class TopicProducerFactory(private val kafkaProperties: KafkaProperties) : AutoC
     override fun close() {
         factories.values.forEach { factory ->
             try {
-                factory.destroy()
+                if (factory is KafkaTemplate<*, *>) factory.destroy()
             } catch (e: Exception) {
                 log.warn("Error while closing Kafka producer factory", e)
             }
