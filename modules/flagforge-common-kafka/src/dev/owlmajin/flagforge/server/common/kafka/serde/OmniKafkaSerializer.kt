@@ -18,8 +18,8 @@ class OmniKafkaSerializer(val config: Map<String, Any> = emptyMap()) : Serialize
         val mapper = KafkaJacksonTypeMapper().apply {
             addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
         }
-        typeMapper = mapper
-        isAddTypeInfo = true
+        setTypeMapper(mapper)
+        setAddTypeInfo(true) // важно, записываем в хэдэры "__TypeId__" чтобы потом можно было корректно десериализовать
     }
 
     override fun configure(configs: MutableMap<String, *>?, isKey: Boolean) {
@@ -49,26 +49,7 @@ class OmniKafkaSerializer(val config: Map<String, Any> = emptyMap()) : Serialize
         objectSerializer.close()
     }
 
-    // ToDo fix!!
-    private fun serializeObject(topic: String, headers: Headers?, data: Any?): ByteArray {
-        println("=== OmniKafkaSerializer ===")
-        println("Serializing object: topic=$topic, type=${data?.javaClass?.name}")
-        println("Headers present: ${headers != null}")
-        
-        val result = if (headers != null) {
-            objectSerializer.serialize(topic, headers, data)
-        } else {
-            objectSerializer.serialize(topic, data)
-        }
-        
-        if (headers != null) {
-            val headersList = headers.toArray().map { h -> 
-                "${h.key()}=${h.value()?.let { String(it) } ?: "null"}" 
-            }
-            println("Headers after serialization: $headersList")
-        }
-        println("===========================")
-        
-        return result
-    }
+    private fun serializeObject(topic: String, headers: Headers?, data: Any?): ByteArray =
+        headers?.let { objectSerializer.serialize(topic, headers, data) }
+            ?: objectSerializer.serialize(topic, headers)
 }
