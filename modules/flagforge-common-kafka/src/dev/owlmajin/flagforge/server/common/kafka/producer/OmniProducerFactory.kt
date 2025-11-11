@@ -20,10 +20,14 @@ class OmniProducerFactory(private val kafkaProperties: KafkaProperties) : AutoCl
 
     private val factories = ConcurrentHashMap<String, ProducerFactory<Any, Any>>()
 
-    fun createProducer(topic: TopicProperties): TopicProducer<Any, Any> {
+    fun createTopicProducer(topic: TopicProperties): TopicProducer<Any, Any> {
         val normalizedTopic = topic.applyDefaults()
-        val template = createTemplate(normalizedTopic)
-        return TopicProducer(normalizedTopic, template)
+        return TopicProducer(normalizedTopic, createTemplate(normalizedTopic))
+    }
+
+    fun create(topic: TopicProperties): KafkaOperations<Any, Any> {
+        val normalizedTopic = topic.applyDefaults()
+        return createTemplate(normalizedTopic)
     }
 
     private fun createTemplate(topic: TopicProperties): KafkaOperations<Any, Any> {
@@ -31,6 +35,7 @@ class OmniProducerFactory(private val kafkaProperties: KafkaProperties) : AutoCl
             val props = buildProducerProps(topic)
             log.info("Creating Kafka producer factory for topic=${topic.effectiveName} with client.id=${props[ProducerConfig.CLIENT_ID_CONFIG]}")
 
+            @Suppress("UNCHECKED_CAST")
             DefaultKafkaProducerFactory(
                 props,
                 StringSerializer() as Serializer<Any>,
@@ -55,7 +60,7 @@ class OmniProducerFactory(private val kafkaProperties: KafkaProperties) : AutoCl
     override fun close() {
         factories.values.forEach { factory ->
             try {
-                if (factory is KafkaTemplate<*, *>) factory.destroy()
+                factory.destroy()
             } catch (e: Exception) {
                 log.warn("Error while closing Kafka producer factory", e)
             }

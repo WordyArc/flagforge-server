@@ -5,6 +5,7 @@ import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FlagCommand
 import org.slf4j.LoggerFactory
+import org.springframework.kafka.core.KafkaOperations
 import org.springframework.stereotype.Component
 
 interface FlagRepository {
@@ -21,7 +22,7 @@ class FlagRepositoryImpl(
         private val log = LoggerFactory.getLogger(FlagRepositoryImpl::class.java)
     }
 
-    private val producer by lazy { producerFactory.createProducer(persistenceProperties.flagCommands) }
+    private val producer by lazy { producerFactory.createTopicProducer(persistenceProperties.flagCommands) }
 
     override suspend fun create(command: FlagCommand) {
         producer.sendAwait(command.flagId, command)

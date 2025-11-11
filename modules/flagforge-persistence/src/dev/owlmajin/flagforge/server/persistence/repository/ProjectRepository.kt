@@ -21,7 +21,7 @@ class ProjectRepositoryImpl(
         private val log = LoggerFactory.getLogger(ProjectRepositoryImpl::class.java)
     }
 
-    private val producer by lazy { producerFactory.createProducer(persistenceProperties.flagCommands) }
+    private val producer by lazy { producerFactory.createTopicProducer(persistenceProperties.flagCommands) }
 
     override suspend fun create(command: ProjectCommand) {
         producer.sendAwait(command.projectId, command)
