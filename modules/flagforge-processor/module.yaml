@@ -15,7 +15,4 @@ dependencies:
   - $libs.spring.boot.kafka
   - $libs.slf4j.api
   - $libs.jackson.databind
-  - tools.jackson.module:jackson-module-kotlin
-#  - $libs.jackson2.databind # kafka-streams ещё не переехали на jackson3
-#  - com.fasterxml.jackson.datatype:jackson-datatype-jsr310
-#  - com.fasterxml.jackson.module:jackson-module-kotlin
+  - $libs.jackson.module.kotlin

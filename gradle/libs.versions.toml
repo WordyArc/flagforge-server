@@ -7,6 +7,9 @@ spring-cloud-bom = "2025.0.0"
 kotlin-bom = "org.jetbrains.kotlin:kotlin-bom"
 kotlinx-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
+reactor-core = "io.projectreactor:reactor-core"
+kotlinx-coroutines-reactor = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor"
+
 # --- spring dependencies ---
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-bom" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud-bom" }
@@ -29,4 +32,7 @@ jakarta-validation-api = "jakarta.validation:jakarta.validation-api"
 hibernate-validator = "org.hibernate.validator:hibernate-validator"
 jackson-core = "tools.jackson.core:jackson-core"
 jackson-databind = "tools.jackson.core:jackson-databind"
+jackson-module-kotlin = "tools.jackson.module:jackson-module-kotlin"
 jackson2-databind = "com.fasterxml.jackson.core:jackson-databind"
+jackson2-datatype-jsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+jackson2-module-kotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
