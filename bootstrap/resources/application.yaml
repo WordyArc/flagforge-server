@@ -8,15 +8,15 @@ app:
     kafka:
       bootstrap-servers: host.docker.internal:9092
       client-id: flagforge-server
-    flag-commands:
-      name: flag-commands
+    command-messages:
+      name: command-messages
       concurrency: 1
       partitions: 1
       replication-factor: 1
       topic-config:
         retention.ms: "86400000"
-    flag-events:
-      name: flag-events
+    event-messages:
+      name: event-messages
       concurrency: 1
       partitions: 1
     flag-state:

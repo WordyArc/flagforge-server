@@ -11,7 +11,6 @@ import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.kstream.Consumed
-import org.apache.kafka.streams.kstream.Joined
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.KTable
 import org.apache.kafka.streams.kstream.Produced
@@ -32,8 +31,8 @@ class TopologyConfiguration(
 
     @Bean
     fun flagCommandKStream(builder: StreamsBuilder): KStream<String, *> {
-        val commandsTopic = persistenceProperties.flagCommands.effectiveName
-        val eventsTopic = persistenceProperties.flagEvents.effectiveName
+        val commandsTopic = persistenceProperties.commandMessages.effectiveName
+        val eventsTopic = persistenceProperties.eventMessages.effectiveName
         val flagStateTopic = persistenceProperties.flagState.effectiveName
         val projectStateTopic = persistenceProperties.projectState.effectiveName
         val envStateTopic = persistenceProperties.envState.effectiveName

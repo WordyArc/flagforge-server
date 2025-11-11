@@ -48,7 +48,7 @@ class PersistenceTopicConfiguration {
         @Bean
         fun topicGroup() = TopicGroup("persistence") {
             buildSet {
-                add(it.flagCommands)
+                add(it.commandMessages)
             }
         }
     }
@@ -59,8 +59,8 @@ class PersistenceTopicConfiguration {
         @Bean
         fun topicGroup() = TopicGroup("persistence") {
             buildSet {
-                add(it.flagCommands)
-                add(it.flagEvents)
+                add(it.commandMessages)
+                add(it.eventMessages)
                 add(it.flagState)
                 add(it.segmentState)
                 add(it.envState)

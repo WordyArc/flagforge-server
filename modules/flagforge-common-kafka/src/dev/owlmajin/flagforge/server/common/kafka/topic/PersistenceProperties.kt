@@ -13,11 +13,11 @@ class PersistenceProperties {
     var autoCreateTopics: Boolean = true
     var kafka: KafkaProperties = KafkaProperties()
 
-    var flagCommands = TopicProperties()
+    var commandMessages = TopicProperties()
         set(value) {
             field = value.overrideWith(field)
         }
-    var flagEvents = TopicProperties()
+    var eventMessages = TopicProperties()
         set(value) {
             field = value.overrideWith(field)
         }
@@ -43,15 +43,15 @@ class PersistenceProperties {
         }
 
     init {
-        flagCommands = flagCommands.withDefaults(
-            "flag-commands",
-            "flagCommandsTopic",
+        commandMessages = commandMessages.withDefaults(
+            "command-messages",
+            "CommandMessagesTopic",
             DELETE_POLICY,
             DATA_SCHEMA_RUNTIME_V1_0_0
         )
-        flagEvents = flagEvents.withDefaults(
-            "flag-events",
-            "flagEventsTopic",
+        eventMessages = eventMessages.withDefaults(
+            "event-messages",
+            "EventMessagesTopic",
             DELETE_POLICY,
             DATA_SCHEMA_RUNTIME_V1_0_0
         )

@@ -3,7 +3,7 @@ package dev.owlmajin.flagforge.server.model
 import java.time.Instant
 
 
-sealed class ChangeMessage(
+sealed class Message(
     val id: String,
     val aggregateId: String,
     val aggregateType: AggregateType,
@@ -20,7 +20,7 @@ open class Command(
     timestamp: Instant,
     correlationId: String?,
     val expectedVersion: Long?,
-) : ChangeMessage(
+) : Message(
     id = id,
     aggregateId = aggregateId,
     aggregateType = aggregateType,
@@ -38,7 +38,7 @@ open class Event(
     correlationId: String? = null,
     val version: Long,
     val commandId: String,
-) : ChangeMessage(
+) : Message(
     id = id,
     aggregateId = aggregateId,
     aggregateType = aggregateType,
