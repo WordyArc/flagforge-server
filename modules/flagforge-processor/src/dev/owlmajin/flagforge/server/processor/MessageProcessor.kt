@@ -34,7 +34,7 @@ sealed interface FlagProcessingResult {
 }
 
 @Service
-class Processor {
+class MessageProcessor {
 
     private val log = LoggerFactory.getLogger(javaClass)
 

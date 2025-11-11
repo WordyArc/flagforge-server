@@ -1,23 +1,17 @@
 package dev.owlmajin.flagforge.server.processor.kafka.serde
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.apache.kafka.common.errors.SerializationException
 import org.apache.kafka.common.header.Headers
 import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.LoggerFactory
-import org.springframework.kafka.support.serializer.JsonDeserializer as SpringKafkaJsonDeserializer
+import org.springframework.kafka.support.serializer.JacksonJsonSerde
+import tools.jackson.databind.json.JsonMapper
 
-class KafkaStreamsCommandDeserializer : Deserializer<Any?> {
+class KafkaStreamsCommandDeserializer(jsonMapper: JsonMapper) : Deserializer<Any?> {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val objectMapper = ObjectMapper()
-        .registerKotlinModule()
-        .registerModule(JavaTimeModule())
-
-    private val delegate = SpringKafkaJsonDeserializer(Any::class.java, objectMapper).apply {
+    private val delegate = JacksonJsonSerde(Any::class.java, jsonMapper).deserializer().apply {
         addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
         setUseTypeHeaders(true)
     }
@@ -34,7 +28,6 @@ class KafkaStreamsCommandDeserializer : Deserializer<Any?> {
             if (data == null) {
                 null
             } else {
-                // Логируем headers для отладки
                 if (headers != null) {
                     val headersList = headers.toArray().map { h ->
                         "${h.key()}=${h.value()?.let { String(it) } ?: "null"}"

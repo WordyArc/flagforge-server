@@ -5,7 +5,7 @@ import dev.owlmajin.flagforge.server.model.FlagAggregate
 import dev.owlmajin.flagforge.server.model.FlagCommand
 import dev.owlmajin.flagforge.server.model.FlagEvent
 import dev.owlmajin.flagforge.server.processor.FlagProcessingResult
-import dev.owlmajin.flagforge.server.processor.Processor
+import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KeyValue
@@ -17,15 +17,15 @@ import org.apache.kafka.streams.kstream.Produced
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.kafka.support.serializer.JsonSerde as SpringKafkaJsonSerde
+import org.springframework.kafka.support.serializer.JacksonJsonSerde
 
 @Configuration
 class TopologyConfiguration(
     private val persistenceProperties: PersistenceProperties,
-    private val processor: Processor,
+    private val messageProcessor: MessageProcessor,
     private val commandSerde: Serde<Any>,
-    private val flagAggregateSerde: SpringKafkaJsonSerde<FlagAggregate>,
-    private val flagEventSerde: SpringKafkaJsonSerde<Any>,
+    private val flagAggregateSerde: JacksonJsonSerde<FlagAggregate>,
+    private val flagEventSerde: JacksonJsonSerde<Any>,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -53,7 +53,7 @@ class TopologyConfiguration(
                 Consumed.with(stringSerde, flagAggregateSerde),
             )
 
-        val anySerde = SpringKafkaJsonSerde(Any::class.java).apply {
+        val anySerde = JacksonJsonSerde(Any::class.java).apply {
             deserializer().addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
         }
 
@@ -104,7 +104,7 @@ class TopologyConfiguration(
                     flagState,
                     { command, currentState -> 
                         log.info("Processing command with state: command={}, currentState={}", command::class.simpleName, currentState?.id)
-                        processor.process(command, currentState)
+                        messageProcessor.process(command, currentState)
                     },
                 )
                 .peek { key, result ->
@@ -128,7 +128,7 @@ class TopologyConfiguration(
             }
             .to(
                 eventsTopic,
-                Produced.with(stringSerde, flagEventSerde as SpringKafkaJsonSerde<FlagEvent>),
+                Produced.with(stringSerde, flagEventSerde as JacksonJsonSerde<FlagEvent>),
             )
 
         // --- состояние агрегатов ---

@@ -1,6 +1,5 @@
 package dev.owlmajin.flagforge.server.processor.config
 
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguration
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FlagAggregate
@@ -21,7 +20,12 @@ import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.EnableKafkaStreams
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration
 import org.springframework.kafka.config.KafkaStreamsConfiguration
-import org.springframework.kafka.support.serializer.JsonSerde as SpringKafkaJsonSerde
+import org.springframework.kafka.support.serializer.JacksonJsonSerde
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinFeature
+import tools.jackson.module.kotlin.KotlinModule
+import tools.jackson.module.kotlin.jsonMapper
+import tools.jackson.module.kotlin.kotlinModule
 
 @Profile("processor")
 @Import(CommonKafkaConfiguration::class)
@@ -31,6 +35,19 @@ import org.springframework.kafka.support.serializer.JsonSerde as SpringKafkaJson
 class ProcessorConfiguration() {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+
+
+    @Bean
+    fun createKotlinModule() = kotlinModule {
+        enable(KotlinFeature.StrictNullChecks)
+    }
+
+    @Bean
+    fun jsonMapper(createKotlinModule: KotlinModule): JsonMapper = jsonMapper {
+        addModule(createKotlinModule)
+    }
+
 
     @Bean(name = [KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME])
     fun kafkaStreamsConfig(persistenceProperties: PersistenceProperties): KafkaStreamsConfiguration {
@@ -50,28 +67,20 @@ class ProcessorConfiguration() {
     }
 
     @Bean
-    fun commandSerde(): Serde<Any> =
+    fun commandSerde(jsonMapper: JsonMapper): Serde<Any> =
         Serdes.serdeFrom(
-            KafkaStreamsCommandSerializer() as Serializer<Any>,
-            KafkaStreamsCommandDeserializer() as Deserializer<Any?>
+            KafkaStreamsCommandSerializer(jsonMapper) as Serializer<Any>,
+            KafkaStreamsCommandDeserializer(jsonMapper) as Deserializer<Any?>
         )
 
     @Bean
-    fun flagAggregateSerde(): SpringKafkaJsonSerde<FlagAggregate> {
-        val objectMapper = com.fasterxml.jackson.databind.ObjectMapper()
-            .registerKotlinModule()
-            .findAndRegisterModules()
-        
-        return SpringKafkaJsonSerde(FlagAggregate::class.java, objectMapper)
+    fun flagAggregateSerde(jsonMapper: JsonMapper): JacksonJsonSerde<FlagAggregate> {
+        return JacksonJsonSerde(FlagAggregate::class.java, jsonMapper)
     }
 
     @Bean
-    fun flagEventSerde(): SpringKafkaJsonSerde<Any> {
-        val objectMapper = com.fasterxml.jackson.databind.ObjectMapper()
-            .registerKotlinModule()
-            .findAndRegisterModules()
-        
-        return SpringKafkaJsonSerde(Any::class.java, objectMapper).apply {
+    fun flagEventSerde(jsonMapper: JsonMapper): JacksonJsonSerde<Any> {
+        return JacksonJsonSerde(Any::class.java, jsonMapper).apply {
             deserializer().addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
         }
     }

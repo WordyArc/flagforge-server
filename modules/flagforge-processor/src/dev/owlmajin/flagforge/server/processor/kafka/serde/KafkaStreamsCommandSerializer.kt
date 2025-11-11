@@ -1,19 +1,13 @@
 package dev.owlmajin.flagforge.server.processor.kafka.serde
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.apache.kafka.common.header.Headers
 import org.apache.kafka.common.serialization.Serializer
-import org.springframework.kafka.support.serializer.JsonSerializer as SpringKafkaJsonSerializer
+import org.springframework.kafka.support.serializer.JacksonJsonSerde
+import tools.jackson.databind.json.JsonMapper
 
-class KafkaStreamsCommandSerializer : Serializer<Any?> {
+class KafkaStreamsCommandSerializer(jsonMapper: JsonMapper) : Serializer<Any?> {
 
-    private val objectMapper = ObjectMapper()
-        .registerKotlinModule()
-        .registerModule(JavaTimeModule())
-
-    private val delegate = SpringKafkaJsonSerializer<Any>(objectMapper).apply {
+    private val delegate = JacksonJsonSerde<Any>(jsonMapper).serializer().apply {
         isAddTypeInfo = true
     }
 
