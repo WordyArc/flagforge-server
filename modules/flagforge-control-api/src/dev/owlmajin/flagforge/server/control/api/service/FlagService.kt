@@ -2,6 +2,7 @@ package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
 import dev.owlmajin.flagforge.server.model.CreateFlagCommand
+import dev.owlmajin.flagforge.server.model.toFlagCommandMessage
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
 import dev.owlmajin.flagforge.server.model.api.v1.flagResourceName
@@ -23,8 +24,7 @@ class FlagService(
     ): CommandResponse {
         val flagId = idGenerator.next()
 
-        val command = CreateFlagCommand(
-            actorId = actorId,
+        val commandPayload = CreateFlagCommand(
             flagId = flagId,
             projectId = projectId,
             environmentKey = environmentKey,
@@ -35,10 +35,14 @@ class FlagService(
             defaultVariant = request.defaultVariant,
             salt = request.salt ?: flagId,
         )
+        val command = commandPayload.toFlagCommandMessage(
+            actorId = actorId,
+        )
+
         flagRepository.create(command)
 
         return CommandResponse(
-            commandId = command.id,
+            commandId = command.header.id,
             resourceName = flagResourceName(
                 projectId = projectId,
                 environmentKey = environmentKey,

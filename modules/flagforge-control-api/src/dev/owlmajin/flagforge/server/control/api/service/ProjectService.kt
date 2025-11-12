@@ -2,7 +2,7 @@ package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
 import dev.owlmajin.flagforge.server.model.CreateProjectCommand
-import dev.owlmajin.flagforge.server.model.ProjectCommand
+import dev.owlmajin.flagforge.server.model.toProjectCommandMessage
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateProjectRequest
 import dev.owlmajin.flagforge.server.model.api.v1.projectResourceName
@@ -21,17 +21,20 @@ class ProjectService(
     ): CommandResponse {
         val projectId = idGenerator.next()
 
-        val command: ProjectCommand = CreateProjectCommand(
+        val payload = CreateProjectCommand(
             projectId = projectId,
-            actorId = actorId,
             key = request.key,
             name = request.name,
+        )
+
+        val command = payload.toProjectCommandMessage(
+            actorId = actorId,
         )
 
         projectRepository.create(command)
 
         return CommandResponse(
-            commandId = command.id,
+            commandId = command.header.id,
             resourceName = projectResourceName(projectId),
         )
     }

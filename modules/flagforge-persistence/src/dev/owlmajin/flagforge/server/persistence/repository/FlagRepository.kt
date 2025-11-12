@@ -3,12 +3,13 @@ package dev.owlmajin.flagforge.server.persistence.repository
 import dev.owlmajin.flagforge.server.common.kafka.producer.OmniProducerFactory
 import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
-import dev.owlmajin.flagforge.server.model.FlagCommand
+import dev.owlmajin.flagforge.server.model.CommandMessage
+import dev.owlmajin.flagforge.server.model.CreateFlagCommand
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 interface FlagRepository {
-    suspend fun create(command: FlagCommand)
+    suspend fun create(command: CommandMessage<CreateFlagCommand>)
 }
 
 @Component
@@ -23,9 +24,15 @@ class FlagRepositoryImpl(
 
     private val producer by lazy { producerFactory.createTopicProducer(persistenceProperties.commandMessages) }
 
-    override suspend fun create(command: FlagCommand) {
-        producer.sendAwait(command.flagId, command)
+    override suspend fun create(command: CommandMessage<CreateFlagCommand>) {
+        val payload = command.payload
+        producer.sendAwait(payload.flagId, command)
 
-        log.debug("Flag command sent. type=${command::class.simpleName}, flagId=${command.flagId}, commandId=${command.id}")
+        log.debug(
+            "Flag command sent. type={}, flagId={}, commandId={}",
+            payload::class.simpleName,
+            payload.flagId,
+            command.header.id,
+        )
     }
 }
