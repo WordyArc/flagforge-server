@@ -1,51 +1,37 @@
 package dev.owlmajin.flagforge.server.model
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.Instant
+import kotlin.uuid.Uuid
 
 
-sealed class Message(
+data class MessageHeader(
     val id: String,
+    val kind: MessageKind,
     val aggregateId: String,
     val aggregateType: AggregateType,
     val actorId: String?,
     val timestamp: Instant,
-    val correlationId: String?,
+    val correlationId: String? = null,
 )
 
-open class Command(
-    id: String,
-    aggregateId: String,
-    aggregateType: AggregateType,
-    actorId: String,
-    timestamp: Instant,
-    correlationId: String?,
-    val expectedVersion: Long?,
-) : Message(
-    id = id,
-    aggregateId = aggregateId,
-    aggregateType = aggregateType,
-    actorId = actorId,
-    timestamp = timestamp,
-    correlationId = correlationId,
+data class Message<T : MessagePayload>(
+    val header: MessageHeader,
+    val payload: T,
 )
 
-open class Event(
-    id: String,
-    aggregateId: String,
-    aggregateType: AggregateType,
-    actorId: String? = null,
-    timestamp: Instant,
-    correlationId: String? = null,
-    val version: Long,
-    val commandId: String,
-) : Message(
-    id = id,
-    aggregateId = aggregateId,
-    aggregateType = aggregateType,
-    actorId = actorId,
-    timestamp = timestamp,
-    correlationId = correlationId,
-)
+sealed interface MessagePayload
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+sealed interface CommandPayload : MessagePayload {
+    val expectedVersion: Long?
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+sealed interface EventPayload : MessagePayload {
+    val version: Long
+    val commandId: String
+}
 
 enum class AggregateType {
     PROJECT,
@@ -54,3 +40,53 @@ enum class AggregateType {
     FLAG,
     SDK_KEY,
 }
+
+enum class MessageKind {
+    COMMAND,
+    EVENT,
+}
+
+typealias CommandMessage<T> = Message<T>
+typealias EventMessage<T> = Message<T>
+
+fun <T : CommandPayload> commandMessage(
+    aggregateId: String,
+    aggregateType: AggregateType,
+    actorId: String,
+    payload: T,
+    timestamp: Instant = Instant.now(),
+    correlationId: String? = null,
+    messageId: String = Uuid.random().toString(),
+): CommandMessage<T> = Message(
+    header = MessageHeader(
+        id = messageId,
+        kind = MessageKind.COMMAND,
+        aggregateId = aggregateId,
+        aggregateType = aggregateType,
+        actorId = actorId,
+        timestamp = timestamp,
+        correlationId = correlationId,
+    ),
+    payload = payload,
+)
+
+fun <T : EventPayload> eventMessage(
+    aggregateId: String,
+    aggregateType: AggregateType,
+    actorId: String?,
+    payload: T,
+    timestamp: Instant = Instant.now(),
+    correlationId: String? = null,
+    messageId: String = Uuid.random().toString(),
+): EventMessage<T> = Message(
+    header = MessageHeader(
+        id = messageId,
+        kind = MessageKind.EVENT,
+        aggregateId = aggregateId,
+        aggregateType = aggregateType,
+        actorId = actorId,
+        timestamp = timestamp,
+        correlationId = correlationId,
+    ),
+    payload = payload,
+)

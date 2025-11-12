@@ -1,33 +1,19 @@
 package dev.owlmajin.flagforge.server.model
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Instant
 import kotlin.uuid.Uuid
 
 
-sealed class FlagEvent protected constructor(
-    id: String,
-    commandId: String,
-    actorId: String,
-    timestamp: Instant,
-    version: Long,
-    correlationId: String? = null,
-    val flagId: String,
-) : Event(
-    id = id,
-    aggregateId = flagId,
-    aggregateType = AggregateType.FLAG,
-    actorId = actorId,
-    timestamp = timestamp,
-    correlationId = correlationId,
-    version = version,
-    commandId = commandId,
-)
+sealed interface FlagEventPayload : EventPayload {
+    val flagId: String
+}
 
-class FlagCreatedEvent(
-    commandId: String,
-    flagId: String,
-    actorId: String,
-    version: Long,
+@JsonTypeName("flag.created")
+data class FlagCreatedEvent(
+    override val flagId: String,
+    override val commandId: String,
+    override val version: Long,
     val projectId: String,
     val environmentKey: String,
     val flagKey: String,
@@ -36,72 +22,53 @@ class FlagCreatedEvent(
     val rules: List<FlagRule>,
     val defaultVariant: String?,
     val salt: String,
-) : FlagEvent(
-    id = Uuid.random().toString(),
-    commandId = commandId,
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    version = version,
-)
+) : FlagEventPayload
 
-class FlagRulesUpdatedEvent(
-    commandId: String,
-    flagId: String,
-    actorId: String,
-    version: Long,
+@JsonTypeName("flag.rules-updated")
+data class FlagRulesUpdatedEvent(
+    override val flagId: String,
+    override val commandId: String,
+    override val version: Long,
     val rules: List<FlagRule>,
     val defaultVariant: String?,
-) : FlagEvent(
-    id = Uuid.random().toString(),
-    commandId = commandId,
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    version = version,
-)
+) : FlagEventPayload
 
-class FlagToggledEvent(
-    commandId: String,
-    flagId: String,
-    actorId: String,
-    version: Long,
+@JsonTypeName("flag.toggled")
+data class FlagToggledEvent(
+    override val flagId: String,
+    override val commandId: String,
+    override val version: Long,
     val enabled: Boolean,
-) : FlagEvent(
-    id = Uuid.random().toString(),
-    commandId = commandId,
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    version = version,
-)
+) : FlagEventPayload
 
-class FlagDeletedEvent(
-    commandId: String,
-    flagId: String,
-    actorId: String,
-    version: Long,
-) : FlagEvent(
-    id = Uuid.random().toString(),
-    commandId = commandId,
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    version = version,
-)
+@JsonTypeName("flag.deleted")
+data class FlagDeletedEvent(
+    override val flagId: String,
+    override val commandId: String,
+    override val version: Long,
+) : FlagEventPayload
 
-class CommandRejectedEvent(
-    commandId: String,
-    flagId: String,
-    actorId: String,
-    version: Long,
+@JsonTypeName("flag.command-rejected")
+data class CommandRejectedEvent(
+    override val flagId: String,
+    override val commandId: String,
+    override val version: Long,
     val reason: String,
     val errorCode: String,
-) : FlagEvent(
-    id = Uuid.random().toString(),
-    commandId = commandId,
-    flagId = flagId,
+) : FlagEventPayload
+
+fun <T> T.toFlagEventMessage(
+    actorId: String?,
+    correlationId: String? = null,
+    timestamp: Instant = Instant.now(),
+    messageId: String = Uuid.random().toString(),
+): EventMessage<T>
+    where T : FlagEventPayload = eventMessage(
+    aggregateId = flagId,
+    aggregateType = AggregateType.FLAG,
     actorId = actorId,
-    timestamp = Instant.now(),
-    version = version,
+    payload = this,
+    timestamp = timestamp,
+    correlationId = correlationId,
+    messageId = messageId,
 )

@@ -1,30 +1,17 @@
 package dev.owlmajin.flagforge.server.model
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Instant
 import kotlin.uuid.Uuid
 
 
-sealed class FlagCommand protected constructor(
-    id: String,
-    actorId: String,
-    timestamp: Instant,
-    expectedVersion: Long?,
-    correlationId: String? = null,
-    val flagId: String,
-) : Command(
-    id = id,
-    aggregateId = flagId,
-    aggregateType = AggregateType.FLAG,
-    actorId = actorId,
-    timestamp = timestamp,
-    correlationId = correlationId,
-    expectedVersion = expectedVersion,
-)
+sealed interface FlagCommandPayload : CommandPayload {
+    val flagId: String
+}
 
-class CreateFlagCommand(
-    flagId: String,
-    actorId: String,
-    correlationId: String? = null,
+@JsonTypeName("flag.create")
+data class CreateFlagCommand(
+    override val flagId: String,
     val projectId: String,
     val environmentKey: String,
     val flagKey: String,
@@ -33,52 +20,43 @@ class CreateFlagCommand(
     val rules: List<FlagRule>,
     val defaultVariant: String?,
     val salt: String,
-) : FlagCommand(
-    id = Uuid.random().toString(),
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    expectedVersion = null,
-    correlationId = correlationId,
-)
+) : FlagCommandPayload {
+    override val expectedVersion: Long? = null
+}
 
-class UpdateFlagRulesCommand(
-    flagId: String,
-    actorId: String,
-    expectedVersion: Long,
-    correlationId: String? = null,
+@JsonTypeName("flag.update-rules")
+data class UpdateFlagRulesCommand(
+    override val flagId: String,
+    override val expectedVersion: Long,
     val rules: List<FlagRule>,
     val defaultVariant: String?,
-) : FlagCommand(
-    id = Uuid.random().toString(),
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    expectedVersion = expectedVersion,
-    correlationId = correlationId,
-)
+) : FlagCommandPayload
 
-class ToggleFlagCommand(
-    flagId: String,
-    actorId: String,
-    expectedVersion: Long,
+@JsonTypeName("flag.toggle")
+data class ToggleFlagCommand(
+    override val flagId: String,
+    override val expectedVersion: Long,
     val enabled: Boolean,
-) : FlagCommand(
-    id = Uuid.random().toString(),
-    flagId = flagId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    expectedVersion = expectedVersion,
-)
+) : FlagCommandPayload
 
-class DeleteFlagCommand(
-    flagId: String,
+@JsonTypeName("flag.delete")
+data class DeleteFlagCommand(
+    override val flagId: String,
+    override val expectedVersion: Long,
+) : FlagCommandPayload
+
+fun <T> T.toFlagCommandMessage(
     actorId: String,
-    expectedVersion: Long,
-) : FlagCommand(
-    id = Uuid.random().toString(),
-    flagId = flagId,
+    correlationId: String? = null,
+    timestamp: Instant = Instant.now(),
+    messageId: String = Uuid.random().toString(),
+): CommandMessage<T>
+    where T : FlagCommandPayload = commandMessage(
+    aggregateId = flagId,
+    aggregateType = AggregateType.FLAG,
     actorId = actorId,
-    timestamp = Instant.now(),
-    expectedVersion = expectedVersion,
+    payload = this,
+    timestamp = timestamp,
+    correlationId = correlationId,
+    messageId = messageId,
 )

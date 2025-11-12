@@ -1,36 +1,35 @@
 package dev.owlmajin.flagforge.server.model
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Instant
 import kotlin.uuid.Uuid
 
-sealed class ProjectCommand protected constructor(
-    id: String,
+
+sealed interface ProjectCommandPayload : CommandPayload {
+    val projectId: String
+}
+
+@JsonTypeName("project.create")
+data class CreateProjectCommand(
+    override val projectId: String,
+    val key: String,
+    val name: String,
+) : ProjectCommandPayload {
+    override val expectedVersion: Long? = null
+}
+
+fun <T> T.toProjectCommandMessage(
     actorId: String,
-    timestamp: Instant,
-    expectedVersion: Long?,
     correlationId: String? = null,
-    val projectId: String,
-) : Command(
-    id = id,
+    timestamp: Instant = Instant.now(),
+    messageId: String = Uuid.random().toString(),
+): CommandMessage<T>
+    where T : ProjectCommandPayload = commandMessage(
     aggregateId = projectId,
     aggregateType = AggregateType.PROJECT,
     actorId = actorId,
+    payload = this,
     timestamp = timestamp,
     correlationId = correlationId,
-    expectedVersion = expectedVersion,
-)
-
-class CreateProjectCommand(
-    projectId: String,
-    actorId: String,
-    correlationId: String? = null,
-    val key: String,
-    val name: String,
-) : ProjectCommand(
-    id = Uuid.random().toString(),
-    projectId = projectId,
-    actorId = actorId,
-    timestamp = Instant.now(),
-    expectedVersion = null,
-    correlationId = correlationId,
+    messageId = messageId,
 )
