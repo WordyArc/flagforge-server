@@ -20,14 +20,17 @@ data class Message<T : MessagePayload>(
     val payload: T,
 )
 
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "payloadType",
+)
 sealed interface MessagePayload
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface CommandPayload : MessagePayload {
     val expectedVersion: Long?
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface EventPayload : MessagePayload {
     val version: Long
     val commandId: String

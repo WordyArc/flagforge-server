@@ -1,31 +1,41 @@
 package dev.owlmajin.flagforge.server.processor.kafka.serde
 
+import dev.owlmajin.flagforge.server.common.kafka.serde.KafkaJacksonTypeMapper
 import dev.owlmajin.flagforge.server.model.Message
-import dev.owlmajin.flagforge.server.model.MessagePayload
 import org.apache.kafka.common.errors.SerializationException
 import org.apache.kafka.common.header.Headers
+import org.apache.kafka.common.header.internals.RecordHeaders
 import org.apache.kafka.common.serialization.Deserializer
 import org.slf4j.LoggerFactory
-import tools.jackson.core.type.TypeReference
+import org.springframework.kafka.support.serializer.JacksonJsonDeserializer
 import tools.jackson.databind.json.JsonMapper
 
-class KafkaStreamsMessageDeserializer(
-    private val jsonMapper: JsonMapper,
-) : Deserializer<Message<*>> {
+class KafkaStreamsMessageDeserializer(jsonMapper: JsonMapper) : Deserializer<Message<*>> {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val typeRef = object : TypeReference<Message<MessagePayload>>() {}
+
+    private val delegate = JacksonJsonDeserializer(Message::class.java, jsonMapper).apply {
+        val mapper = KafkaJacksonTypeMapper().apply {
+            addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
+        }
+        setTypeMapper(mapper)
+        setUseTypeHeaders(true)
+    }
+
+    override fun configure(configs: MutableMap<String, *>?, isKey: Boolean) {
+        configs?.let { delegate.configure(it, isKey) }
+    }
 
     override fun deserialize(topic: String, data: ByteArray?): Message<*>? =
-        deserialize(topic, null, data)
+        deserialize(topic, RecordHeaders(), data)
 
-    override fun deserialize(topic: String, headers: Headers?, data: ByteArray?): Message<*>? {
+    override fun deserialize(topic: String, headers: Headers, data: ByteArray?): Message<*>? {
         if (data == null) {
             return null
         }
 
         return try {
-            jsonMapper.readValue(data, typeRef)
+            delegate.deserialize(topic, headers, data)
         } catch (ex: SerializationException) {
             log.error("Failed to deserialize record for topic={} due to serialization issue", topic, ex)
             null
