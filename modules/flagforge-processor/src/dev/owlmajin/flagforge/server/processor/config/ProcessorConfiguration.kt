@@ -2,9 +2,10 @@ package dev.owlmajin.flagforge.server.processor.config
 
 import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguration
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
-import dev.owlmajin.flagforge.server.model.FlagAggregate
-import dev.owlmajin.flagforge.server.processor.kafka.serde.KafkaStreamsCommandDeserializer
-import dev.owlmajin.flagforge.server.processor.kafka.serde.KafkaStreamsCommandSerializer
+import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.Message
+import dev.owlmajin.flagforge.server.processor.kafka.serde.KafkaStreamsMessageDeserializer
+import dev.owlmajin.flagforge.server.processor.kafka.serde.KafkaStreamsMessageSerializer
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
@@ -36,8 +37,6 @@ class ProcessorConfiguration() {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-
-
     @Bean
     fun createKotlinModule() = kotlinModule {
         enable(KotlinFeature.StrictNullChecks)
@@ -67,22 +66,15 @@ class ProcessorConfiguration() {
     }
 
     @Bean
-    fun commandSerde(jsonMapper: JsonMapper): Serde<Any> =
+    fun messageSerde(jsonMapper: JsonMapper): Serde<Message<*>> =
         Serdes.serdeFrom(
-            KafkaStreamsCommandSerializer(jsonMapper) as Serializer<Any>,
-            KafkaStreamsCommandDeserializer(jsonMapper) as Deserializer<Any?>
+            KafkaStreamsMessageSerializer(jsonMapper) as Serializer<Message<*>>,
+            KafkaStreamsMessageDeserializer(jsonMapper) as Deserializer<Message<*>>,
         )
 
     @Bean
-    fun flagAggregateSerde(jsonMapper: JsonMapper): JacksonJsonSerde<FlagAggregate> {
-        return JacksonJsonSerde(FlagAggregate::class.java, jsonMapper)
-    }
-
-    @Bean
-    fun flagEventSerde(jsonMapper: JsonMapper): JacksonJsonSerde<Any> {
-        return JacksonJsonSerde(Any::class.java, jsonMapper).apply {
-            deserializer().addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
-        }
+    fun flagAggregateSerde(jsonMapper: JsonMapper): JacksonJsonSerde<FlagState> {
+        return JacksonJsonSerde(FlagState::class.java, jsonMapper)
     }
 
 }

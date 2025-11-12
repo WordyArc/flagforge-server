@@ -1,358 +1,185 @@
 package dev.owlmajin.flagforge.server.processor
 
-import dev.owlmajin.flagforge.server.model.CommandRejectedEvent
-import dev.owlmajin.flagforge.server.model.CreateFlagCommand
-import dev.owlmajin.flagforge.server.model.DeleteFlagCommand
-import dev.owlmajin.flagforge.server.model.FlagAggregate
-import dev.owlmajin.flagforge.server.model.FlagCommand
-import dev.owlmajin.flagforge.server.model.FlagCreatedEvent
-import dev.owlmajin.flagforge.server.model.FlagDeletedEvent
-import dev.owlmajin.flagforge.server.model.FlagEvent
-import dev.owlmajin.flagforge.server.model.FlagRule
-import dev.owlmajin.flagforge.server.model.FlagRulesUpdatedEvent
-import dev.owlmajin.flagforge.server.model.FlagToggledEvent
-import dev.owlmajin.flagforge.server.model.FlagType
-import dev.owlmajin.flagforge.server.model.RuleAction
-import dev.owlmajin.flagforge.server.model.ToggleFlagCommand
-import dev.owlmajin.flagforge.server.model.UpdateFlagRulesCommand
+import dev.owlmajin.flagforge.server.model.CommandMessage
+import dev.owlmajin.flagforge.server.model.CommandPayload
+import dev.owlmajin.flagforge.server.model.EventMessage
+import dev.owlmajin.flagforge.server.model.EventPayload
+import dev.owlmajin.flagforge.server.processor.handler.CommandContext
+import dev.owlmajin.flagforge.server.processor.handler.CommandMessageHandler
+import dev.owlmajin.flagforge.server.processor.handler.EventContext
+import dev.owlmajin.flagforge.server.processor.handler.EventMessageHandler
+import dev.owlmajin.flagforge.server.processor.handler.MessageHandlingResult
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.Instant
-import kotlin.collections.mapNotNull
-
-
-sealed interface FlagProcessingResult {
-
-    data class Applied(
-        val event: FlagEvent,
-        val newState: FlagAggregate?,
-    ) : FlagProcessingResult
-
-    data class Rejected(
-        val event: CommandRejectedEvent,
-    ) : FlagProcessingResult
-}
+import kotlin.reflect.KClass
 
 @Service
-class MessageProcessor {
+class MessageProcessor(
+    commandHandlers: List<CommandMessageHandler<*, *>>, 
+    eventHandlers: List<EventMessageHandler<*, *>>, 
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun process(command: FlagCommand, current: FlagAggregate?): FlagProcessingResult =
-        when (command) {
-            is CreateFlagCommand        -> handleCreate(command, current)
-            is UpdateFlagRulesCommand   -> handleUpdateRules(command, current)
-            is ToggleFlagCommand        -> handleToggle(command, current)
-            is DeleteFlagCommand        -> handleDelete(command, current)
-        }
-
-    private fun handleCreate(
-        command: CreateFlagCommand,
-        current: FlagAggregate?,
-    ): FlagProcessingResult {
-        if (current != null) {
-            log.debug("CreateFlag rejected: flag already exists. flagId={}", command.flagId)
-            return reject(
-                command = command,
-                version = current.version,
-                reason = "FLAG_ALREADY_EXISTS",
-                errorCode = "FLAG_ALREADY_EXISTS",
+    private val commandHandlersIndex: List<CommandHandlerEntry> =
+        commandHandlers.map { handler ->
+            @Suppress("UNCHECKED_CAST")
+            CommandHandlerEntry(
+                handler = handler,
+                payloadType = handler.payloadType as KClass<out CommandPayload>,
+                stateType = handler.stateType as KClass<out Any>?,
             )
         }
 
-        val version = 1L
+    private val eventHandlersIndex: List<EventHandlerEntry> =
+        eventHandlers.map { handler ->
+            @Suppress("UNCHECKED_CAST")
+            EventHandlerEntry(
+                handler = handler,
+                payloadType = handler.payloadType as KClass<out EventPayload>,
+                stateType = handler.stateType as KClass<out Any>?,
+            )
+        }
 
-        val event = FlagCreatedEvent(
-            commandId = command.id,
-            flagId = command.flagId,
-            actorId = command.actorId ?: "system",
-            version = version,
-            projectId = command.projectId,
-            environmentKey = command.environmentKey,
-            flagKey = command.flagKey,
-            type = command.type,
-            enabled = command.enabled,
-            rules = command.rules,
-            defaultVariant = command.defaultVariant,
-            salt = command.salt,
-        )
-
-        val state = FlagAggregate(
-            id = command.flagId,
-            projectId = command.projectId,
-            environmentKey = command.environmentKey,
-            key = command.flagKey,
-            type = command.type,
-            enabled = command.enabled,
-            rules = command.rules,
-            defaultVariant = command.defaultVariant,
-            version = version,
-            salt = command.salt,
-            updatedAt = Instant.now(),
-        )
-
-        return FlagProcessingResult.Applied(event, state)
+    fun processCommand(command: CommandMessage<out CommandPayload>, currentState: Any? = null): MessageHandlingResult.Command {
+        val entry = findCommandHandler(command)
+        return entry.handle(command, currentState, log)
     }
 
-    private fun handleUpdateRules(
-        command: UpdateFlagRulesCommand,
-        current: FlagAggregate?,
-    ): FlagProcessingResult {
-        if (current == null) {
-            log.debug("UpdateFlagRules rejected: flag not found. flagId={}", command.flagId)
-            return reject(
-                command = command,
-                version = 0L,
-                reason = "FLAG_NOT_FOUND",
-                errorCode = "FLAG_NOT_FOUND",
-            )
+    fun processEvent(event: EventMessage<out EventPayload>, currentState: Any? = null): MessageHandlingResult.Event {
+        val entry = findEventHandler(event)
+        if (entry == null) {
+            log.debug("No handler registered for event payload {}", event.payload::class.qualifiedName)
+            return MessageHandlingResult.EventIgnored
         }
-
-        if (command.expectedVersion != current.version) {
-            log.debug(
-                "UpdateFlagRules rejected: version mismatch. flagId={}, expected={}, actual={}",
-                command.flagId,
-                command.expectedVersion,
-                current.version,
-            )
-            return reject(
-                command = command,
-                version = current.version,
-                reason = "VERSION_MISMATCH",
-                errorCode = "VERSION_MISMATCH",
-            )
-        }
-
-        validateFlagDefinitionOrReject(
-            command = command,
-            type = current.type,
-            rules = command.rules,
-            defaultVariant = command.defaultVariant,
-        )?.let { return it }
-
-        val version = current.version + 1
-
-        val event = FlagRulesUpdatedEvent(
-            commandId = command.id,
-            flagId = command.flagId,
-            actorId = command.actorId ?: "system",
-            version = version,
-            rules = command.rules,
-            defaultVariant = command.defaultVariant,
-        )
-
-        val state = current.copy(
-            rules = command.rules,
-            defaultVariant = command.defaultVariant,
-            version = version,
-            updatedAt = Instant.now(),
-        )
-
-        return FlagProcessingResult.Applied(event, state)
+        return entry.handle(event, currentState, log)
     }
 
-    private fun handleToggle(
-        command: ToggleFlagCommand,
-        current: FlagAggregate?,
-    ): FlagProcessingResult {
-        if (current == null) {
-            log.debug("ToggleFlag rejected: flag not found. flagId={}", command.flagId)
-            return reject(
-                command = command,
-                version = 0L,
-                reason = "FLAG_NOT_FOUND",
-                errorCode = "FLAG_NOT_FOUND",
-            )
-        }
+    private fun findCommandHandler(command: CommandMessage<out CommandPayload>): CommandHandlerEntry {
+        val payloadClass = command.payload::class
+        val exact = commandHandlersIndex.firstOrNull { it.payloadType == payloadClass }
 
-        if (command.expectedVersion != current.version) {
-            log.debug(
-                "ToggleFlag rejected: version mismatch. flagId={}, expected={}, actual={}",
-                command.flagId,
-                command.expectedVersion,
-                current.version,
-            )
-            return reject(
-                command = command,
-                version = current.version,
-                reason = "VERSION_MISMATCH",
-                errorCode = "VERSION_MISMATCH",
-            )
-        }
-
-        val version = current.version + 1
-
-        val event = FlagToggledEvent(
-            commandId = command.id,
-            flagId = command.flagId,
-            actorId = command.actorId ?: "system",
-            version = version,
-            enabled = command.enabled,
-        )
-
-        val state = current.copy(
-            enabled = command.enabled,
-            version = version,
-            updatedAt = Instant.now(),
-        )
-
-        return FlagProcessingResult.Applied(event, state)
+        return exact
+            ?: commandHandlersIndex.firstOrNull { it.payloadType.java.isAssignableFrom(payloadClass.java) }
+            ?: error("No command handler registered for payload type ${payloadClass.qualifiedName}")
     }
 
+    private fun findEventHandler(event: EventMessage<out EventPayload>): EventHandlerEntry? {
+        val payloadClass = event.payload::class
+        val exact = eventHandlersIndex.firstOrNull { it.payloadType == payloadClass }
 
-    private fun handleDelete(
-        command: DeleteFlagCommand,
-        current: FlagAggregate?,
-    ): FlagProcessingResult {
-        if (current == null) {
-            log.debug("DeleteFlag rejected: flag not found. flagId={}", command.flagId)
-            return reject(
-                command = command,
-                version = 0L,
-                reason = "FLAG_NOT_FOUND",
-                errorCode = "FLAG_NOT_FOUND",
-            )
-        }
-
-        if (command.expectedVersion != current.version) {
-            log.debug(
-                "DeleteFlag rejected: version mismatch. flagId={}, expected={}, actual={}",
-                command.flagId,
-                command.expectedVersion,
-                current.version,
-            )
-            return reject(
-                command = command,
-                version = current.version,
-                reason = "VERSION_MISMATCH",
-                errorCode = "VERSION_MISMATCH",
-            )
-        }
-
-        val version = current.version + 1
-
-        val event = FlagDeletedEvent(
-            commandId = command.id,
-            flagId = command.flagId,
-            actorId = command.actorId ?: "system",
-            version = version,
-        )
-
-        // tombstone в compacted topic
-        return FlagProcessingResult.Applied(event, newState = null)
+        return exact
+            ?: eventHandlersIndex.firstOrNull { it.payloadType.java.isAssignableFrom(payloadClass.java) }
     }
 
-    private fun validateFlagDefinitionOrReject(
-        command: FlagCommand,
-        type: FlagType,
-        rules: List<FlagRule>,
-        defaultVariant: String?,
-    ): FlagProcessingResult.Rejected? {
-        validateRules(type, rules)?.let { code ->
-            log.debug("Flag command rejected by rule validation. flagId={}, code={}", command.flagId, code)
-            return reject(
-                command = command,
-                version = command.expectedVersion ?: 0L,
-                reason = code,
-                errorCode = code,
-            )
-        }
+    private data class CommandHandlerEntry(
+        val handler: CommandMessageHandler<*, *>,
+        val payloadType: KClass<out CommandPayload>,
+        val stateType: KClass<out Any>?,
+    ) {
+        fun handle(command: CommandMessage<out CommandPayload>, state: Any?, log: Logger): MessageHandlingResult.Command {
+            val typedCommand = castCommand(command)
+            val typedState = castState(state)
+            val context = commandContext(typedState)
 
-        validateDefaultVariant(type, rules, defaultVariant)?.let { code ->
-            log.debug("Flag command rejected by defaultVariant validation. flagId={}, code={}", command.flagId, code)
-            return reject(
-                command = command,
-                version = command.expectedVersion ?: 0L,
-                reason = code,
-                errorCode = code,
-            )
-        }
+            val typedHandler = asHandler()
 
-        return null
-    }
-
-}
-
-
-
-private fun validateRules(
-    type: FlagType,
-    rules: List<FlagRule>,
-): String? {
-    if (rules.size > 100) return "TOO_MANY_RULES"
-
-    val ids = rules.map { it.id }
-    if (ids.size != ids.toSet().size) return "DUPLICATE_RULE_ID"
-
-    val priorities = rules.map { it.priority }
-    if (priorities.size != priorities.toSet().size) return "DUPLICATE_RULE_PRIORITY"
-    if (priorities.any { it < 0 }) return "NEGATIVE_RULE_PRIORITY"
-
-    rules.forEach { rule ->
-        when (val action = rule.action) {
-            is RuleAction.BooleanAction -> {
-                if (type != FlagType.BOOLEAN) return "BOOLEAN_ACTION_FOR_NON_BOOLEAN_FLAG"
+            if (!typedHandler.isMessageValid(typedCommand, context)) {
+                log.debug("Command {} failed validation", typedCommand.payload::class.simpleName)
+                return MessageHandlingResult.CommandIgnored
             }
 
-            is RuleAction.PercentageAction -> {
-                if (type != FlagType.PERCENTAGE) return "PERCENTAGE_ACTION_FOR_NON_PERCENTAGE_FLAG"
-                if (action.truePercent !in 0..100) return "PERCENTAGE_OUT_OF_RANGE"
+            return typedHandler.handleMessage(typedCommand, context)
+        }
+
+        private fun castCommand(command: CommandMessage<out CommandPayload>): CommandMessage<CommandPayload> {
+            val payload = command.payload
+            if (!payloadType.java.isInstance(payload)) {
+                error(
+                    "Command payload type mismatch: expected ${payloadType.qualifiedName}, actual ${payload::class.qualifiedName}",
+                )
             }
 
-            is RuleAction.MultiVariantAction -> {
-                if (type != FlagType.MULTIVARIANT) return "MULTIVARIANT_ACTION_FOR_NON_MULTIVARIANT_FLAG"
-                if (action.variants.isEmpty()) return "MULTIVARIANT_EMPTY"
-                val percents = action.variants.values
-                if (percents.any { it < 0 }) return "MULTIVARIANT_NEGATIVE_PERCENT"
-                val sum = percents.sum()
-                if (sum != 100) return "MULTIVARIANT_SUM_NOT_100"
+            @Suppress("UNCHECKED_CAST")
+            return command as CommandMessage<CommandPayload>
+        }
+
+        private fun castState(state: Any?): Any? {
+            if (state == null || stateType == null) {
+                return null
             }
+
+            if (!stateType.java.isInstance(state)) {
+                throw IllegalArgumentException(
+                    "State type mismatch: expected ${stateType.qualifiedName}, actual ${state::class.qualifiedName}",
+                )
+            }
+
+            return state
         }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun asHandler(): CommandMessageHandler<CommandPayload, Any> =
+            handler as CommandMessageHandler<CommandPayload, Any>
+
+        @Suppress("UNCHECKED_CAST")
+        private fun commandContext(state: Any?): CommandContext<Any> =
+            CommandContext<Any>(state as Any?)
     }
 
-    return null
-}
+    private data class EventHandlerEntry(
+        val handler: EventMessageHandler<*, *>,
+        val payloadType: KClass<out EventPayload>,
+        val stateType: KClass<out Any>?,
+    ) {
+        fun handle(event: EventMessage<out EventPayload>, state: Any?, log: Logger): MessageHandlingResult.Event {
+            val typedEvent = castEvent(event)
+            val typedState = castState(state)
+            val context = eventContext(typedState)
 
-private fun validateDefaultVariant(
-    type: FlagType,
-    rules: List<FlagRule>,
-    defaultVariant: String?,
-): String? {
-    return when (type) {
-        FlagType.BOOLEAN -> {
-            if (defaultVariant != null && defaultVariant !in setOf("true", "false")) {
-                "INVALID_DEFAULT_VARIANT_FOR_BOOLEAN"
-            } else null
+            val typedHandler = asHandler()
+
+            if (!typedHandler.isMessageValid(typedEvent, context)) {
+                log.debug("Event {} failed validation", typedEvent.payload::class.simpleName)
+                return MessageHandlingResult.EventIgnored
+            }
+
+            return typedHandler.handleMessage(typedEvent, context)
         }
 
-        FlagType.PERCENTAGE -> {
-            if (defaultVariant != null) "DEFAULT_VARIANT_NOT_ALLOWED_FOR_PERCENTAGE" else null
+        private fun castEvent(event: EventMessage<out EventPayload>): EventMessage<EventPayload> {
+            val payload = event.payload
+            if (!payloadType.java.isInstance(payload)) {
+                error(
+                    "Event payload type mismatch: expected ${payloadType.qualifiedName}, actual ${payload::class.qualifiedName}",
+                )
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            return event as EventMessage<EventPayload>
         }
 
-        FlagType.MULTIVARIANT -> {
-            if (defaultVariant == null) return null
-            val definedVariants = rules
-                .mapNotNull { it.action as? RuleAction.MultiVariantAction }
-                .flatMap { it.variants.keys }
-                .toSet()
-            if (defaultVariant !in definedVariants) "DEFAULT_VARIANT_NOT_IN_VARIANTS" else null
+        private fun castState(state: Any?): Any? {
+            if (state == null || stateType == null) {
+                return null
+            }
+
+            if (!stateType.java.isInstance(state)) {
+                throw IllegalArgumentException(
+                    "State type mismatch: expected ${stateType.qualifiedName}, actual ${state::class.qualifiedName}",
+                )
+            }
+
+            return state
         }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun asHandler(): EventMessageHandler<EventPayload, Any> =
+            handler as EventMessageHandler<EventPayload, Any>
+
+        @Suppress("UNCHECKED_CAST")
+        private fun eventContext(state: Any?): EventContext<Any> =
+            EventContext<Any>(state as Any?)
     }
 }
-
-private fun reject(
-    command: FlagCommand,
-    version: Long,
-    reason: String,
-    errorCode: String,
-): FlagProcessingResult.Rejected =
-    FlagProcessingResult.Rejected(
-        CommandRejectedEvent(
-            commandId = command.id,
-            flagId = command.flagId,
-            actorId = command.actorId ?: "system",
-            version = version,
-            reason = reason,
-            errorCode = errorCode,
-        )
-    )

@@ -1,11 +1,15 @@
 package dev.owlmajin.flagforge.server.processor.config
 
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
-import dev.owlmajin.flagforge.server.model.FlagAggregate
-import dev.owlmajin.flagforge.server.model.FlagCommand
-import dev.owlmajin.flagforge.server.model.FlagEvent
-import dev.owlmajin.flagforge.server.processor.FlagProcessingResult
+import dev.owlmajin.flagforge.server.model.CommandMessage
+import dev.owlmajin.flagforge.server.model.CreateFlagCommand
+import dev.owlmajin.flagforge.server.model.EventMessage
+import dev.owlmajin.flagforge.server.model.FlagEventPayload
+import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.Message
+import dev.owlmajin.flagforge.server.model.MessageKind
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
+import dev.owlmajin.flagforge.server.processor.handler.MessageHandlingResult
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KeyValue
@@ -23,17 +27,16 @@ import org.springframework.kafka.support.serializer.JacksonJsonSerde
 class TopologyConfiguration(
     private val persistenceProperties: PersistenceProperties,
     private val messageProcessor: MessageProcessor,
-    private val commandSerde: Serde<Any>,
-    private val flagAggregateSerde: JacksonJsonSerde<FlagAggregate>,
-    private val flagEventSerde: JacksonJsonSerde<Any>,
+    private val messageSerde: Serde<Message<*>>,
+    private val flagStateSerde: JacksonJsonSerde<FlagState>,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Bean
     fun flagCommandKStream(builder: StreamsBuilder): KStream<String, *> {
         val commandsTopic = persistenceProperties.commandMessages.effectiveName
-        val eventsTopic = persistenceProperties.eventMessages.effectiveName
-        val flagStateTopic = persistenceProperties.flagState.effectiveName
+    val eventsTopic = persistenceProperties.eventMessages.effectiveName
+    val flagStateTopic = persistenceProperties.flagState.effectiveName
         val projectStateTopic = persistenceProperties.projectState.effectiveName
         val envStateTopic = persistenceProperties.envState.effectiveName
         val segmentStateTopic = persistenceProperties.segmentState.effectiveName
@@ -47,10 +50,10 @@ class TopologyConfiguration(
 
 
         // --- state ---
-        val flagState: KTable<String, FlagAggregate> =
+        val flagState: KTable<String, FlagState> =
             builder.table(
                 flagStateTopic,
-                Consumed.with(stringSerde, flagAggregateSerde),
+                Consumed.with(stringSerde, flagStateSerde),
             )
 
         val anySerde = JacksonJsonSerde(Any::class.java).apply {
@@ -74,78 +77,152 @@ class TopologyConfiguration(
 
         // --- команды ---
 
-        val commands: KStream<String, Any> =
+        val commands: KStream<String, Message<*>> =
             builder.stream(
                 commandsTopic,
-                Consumed.with(stringSerde, commandSerde),
+                Consumed.with(stringSerde, messageSerde),
             ).peek { key, value ->
-                log.info("RAW command from stream: key={}, type={}, class={}", key, value?.let { it::class.simpleName }, value?.javaClass)
-                if (value is FlagCommand) {
-                    log.info("Successfully deserialized FlagCommand: flagId={}, commandId={}", value.flagId, value.id)
-                } else {
-                    log.warn("Command is not FlagCommand but {}", value?.javaClass?.name)
-                }
+                log.debug(
+                    "Incoming message: key={}, kind={}, payloadType={}",
+                    key,
+                    value?.header?.kind,
+                    value?.payload?.let { it::class.simpleName },
+                )
             }
 
-        val results: KStream<String, FlagProcessingResult> =
+    val createFlagCommands: KStream<String, CommandMessage<CreateFlagCommand>> =
             commands
-                .filter { key, value -> 
-                    val isFlagCommand = value is FlagCommand
-                    if (!isFlagCommand) {
-                        log.warn("Filtered out non-FlagCommand: key={}, class={}", key, value?.javaClass?.name)
-                    }
-                    isFlagCommand
+                .filter { _, message ->
+                    message != null &&
+                        message.header.kind == MessageKind.COMMAND &&
+                        message.payload is CreateFlagCommand
                 }
-                .mapValues { value -> value as FlagCommand }
+                .mapValues { message ->
+                    @Suppress("UNCHECKED_CAST")
+                    message as CommandMessage<CreateFlagCommand>
+                }
                 .peek { key, command ->
-                    log.info("Processing FlagCommand: key={}, commandType={}, flagId={}", key, command::class.simpleName, command.flagId)
+                    log.info(
+                        "Processing CreateFlag command: key={}, flagId={}, commandId={}",
+                        key,
+                        command.payload.flagId,
+                        command.header.id,
+                    )
                 }
+
+        val commandResults: KStream<String, MessageHandlingResult.Command> =
+            createFlagCommands
                 .leftJoin(
                     flagState,
-                    { command, currentState -> 
-                        log.info("Processing command with state: command={}, currentState={}", command::class.simpleName, currentState?.id)
-                        messageProcessor.process(command, currentState)
+                    { command, currentState ->
+                        log.info(
+                            "CreateFlag with state: flagId={}, currentVersion={}",
+                            command.payload.flagId,
+                            currentState?.version,
+                        )
+                        messageProcessor.processCommand(command, currentState)
                     },
                 )
                 .peek { key, result ->
                     when (result) {
-                        is FlagProcessingResult.Applied -> log.info("Command applied: key={}, event={}", key, result.event::class.simpleName)
-                        is FlagProcessingResult.Rejected -> log.warn("Command rejected: key={}, reason={}", key, result.event)
+                        is MessageHandlingResult.CommandApplied<*> ->
+                            log.info("Command applied: key={}, eventPayload={}", key, result.event.payload::class.simpleName)
+
+                        is MessageHandlingResult.CommandRejected<*> ->
+                            log.warn("Command rejected: key={}, payload={}", key, result.event.payload)
+
+                        MessageHandlingResult.CommandIgnored ->
+                            log.debug("Command ignored: key={}", key)
                     }
                 }
+                .filter { _, result -> result !is MessageHandlingResult.CommandIgnored }
 
         // --- события ---
 
-        results
-            .mapValues { result ->
+        @Suppress("UNCHECKED_CAST")
+        val eventMessageSerde = messageSerde as Serde<EventMessage<*>>
+
+        commandResults
+            .flatMapValues { result ->
                 when (result) {
-                    is FlagProcessingResult.Applied -> result.event
-                    is FlagProcessingResult.Rejected -> result.event
+                    is MessageHandlingResult.CommandApplied<*> -> listOf(result.event as EventMessage<*>)
+                    is MessageHandlingResult.CommandRejected<*> -> listOf(result.event as EventMessage<*>)
+                    MessageHandlingResult.CommandIgnored -> emptyList()
                 }
             }
             .peek { key, event ->
-                log.debug("Produce flag-event. key={}, type={}", key, event::class.simpleName)
+                log.debug("Produce flag-event. key={}, payloadType={}", key, event.payload::class.simpleName)
             }
             .to(
                 eventsTopic,
-                Produced.with(stringSerde, flagEventSerde as JacksonJsonSerde<FlagEvent>),
+                Produced.with(stringSerde, eventMessageSerde),
             )
 
-        // --- состояние агрегатов ---
+        // --- применение событий и обновление состояния ---
 
-        results
-            .mapValues { result ->
-                when (result) {
-                    is FlagProcessingResult.Applied -> result.newState
-                    is FlagProcessingResult.Rejected -> null
+        val events: KStream<String, Message<*>> =
+            builder.stream(
+                eventsTopic,
+                Consumed.with(stringSerde, messageSerde),
+            )
+                .peek { key, value ->
+                    log.debug(
+                        "Incoming event: key={}, kind={}, payloadType={}",
+                        key,
+                        value?.header?.kind,
+                        value?.payload?.let { it::class.simpleName },
+                    )
                 }
+
+        val flagEvents: KStream<String, EventMessage<FlagEventPayload>> =
+            events
+                .filter { _, message ->
+                    message != null &&
+                        message.header.kind == MessageKind.EVENT &&
+                        message.payload is FlagEventPayload
+                }
+                .mapValues { message ->
+                    @Suppress("UNCHECKED_CAST")
+                    message as EventMessage<FlagEventPayload>
+                }
+
+        val eventResults: KStream<String, MessageHandlingResult.Event> =
+            flagEvents
+                .leftJoin(
+                    flagState,
+                    { event, currentState ->
+                        log.info(
+                            "Apply flag event: flagId={}, payloadType={}, currentVersion={}",
+                            event.payload.flagId,
+                            event.payload::class.simpleName,
+                            currentState?.version,
+                        )
+                        messageProcessor.processEvent(event, currentState)
+                    },
+                )
+                .peek { key, result ->
+                    when (result) {
+                        is MessageHandlingResult.EventApplied<*> ->
+                            log.info("Event applied: key={}, isTombstone={}", key, result.newState == null)
+
+                        MessageHandlingResult.EventIgnored ->
+                            log.debug("Event ignored: key={}", key)
+                    }
+                }
+                .filter { _, result -> result !is MessageHandlingResult.EventIgnored }
+
+        eventResults
+            .mapValues { result ->
+                val applied = result as MessageHandlingResult.EventApplied<*>
+                @Suppress("UNCHECKED_CAST")
+                applied.newState as FlagState?
             }
             .peek { key, aggregate ->
                 log.debug("Produce flag-state. key={}, isTombstone={}", key, aggregate == null)
             }
             .to(
                 flagStateTopic,
-                Produced.with(stringSerde, flagAggregateSerde),
+                Produced.with(stringSerde, flagStateSerde),
             )
 
         // --- индекс для Eval: (projectId, envKey, flagKey) -> flagId ---
@@ -167,6 +244,6 @@ class TopologyConfiguration(
             }
             .to(indexTopic, Produced.with(stringSerde, stringSerde))
 
-        return results
+        return commandResults
     }
 }
