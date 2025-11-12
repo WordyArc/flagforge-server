@@ -12,7 +12,7 @@ import dev.owlmajin.flagforge.server.processor.handler.EventContext
 import dev.owlmajin.flagforge.server.processor.handler.EventMessageHandler
 import dev.owlmajin.flagforge.server.processor.handler.MessageHandlingResult
 import dev.owlmajin.flagforge.server.processor.handler.requireTypeOrNull
-import org.slf4j.LoggerFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
@@ -22,9 +22,7 @@ class MessageProcessor(
     commandHandlers: List<CommandMessageHandler<*, *>>,
     eventHandlers: List<EventMessageHandler<*, *>>,
 ) {
-
-    private val log = LoggerFactory.getLogger(javaClass)
-
+    private val klog = KotlinLogging.logger { javaClass }
     private val commandRoutes: List<CommandRoute> =
         commandHandlers.map { handler -> handler.asRoute() }
             .also { ensureUnique(it.map(CommandRoute::primaryType)) }
@@ -42,7 +40,7 @@ class MessageProcessor(
     fun processEvent(event: EventMessage<out EventPayload>, currentState: Any? = null): MessageHandlingResult.Event {
         val route = eventRoutes.firstOrNull { it.supports(event.payload::class) }
         if (route == null) {
-            log.debug("No handler registered for event payload {}", event.payload::class.qualifiedName)
+            klog.debug { "No handler registered for event payload ${event.payload::class.qualifiedName}" }
             return MessageHandlingResult.EventIgnored
         }
         return route.execute(event, currentState)
@@ -76,7 +74,7 @@ class MessageProcessor(
                 val context = CommandContext(typedState)
 
                 return if (!isMessageValid(typedMessage, context)) {
-                    log.debug("Command {} failed validation", typedMessage.payload::class.simpleName)
+                    klog.debug { "Command ${typedMessage.payload::class.simpleName} failed validation" }
                     MessageHandlingResult.CommandIgnored
                 } else {
                     handleMessage(typedMessage, context)
@@ -100,7 +98,7 @@ class MessageProcessor(
                 val context = EventContext(typedState)
 
                 return if (!isMessageValid(typedEvent, context)) {
-                    log.debug("Event {} failed validation", typedEvent.payload::class.simpleName)
+                    klog.debug { "Event ${typedEvent.payload::class.simpleName} failed validation" }
                     MessageHandlingResult.EventIgnored
                 } else {
                     handleMessage(typedEvent, context)

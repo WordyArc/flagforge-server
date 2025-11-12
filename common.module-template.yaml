@@ -11,3 +11,5 @@ settings:
 dependencies:
   - $kotlin.reflect
   - org.jetbrains.kotlinx:kotlinx.reflect.lite:1.1.0
+
+  - $libs.kotlin.logging.jvm

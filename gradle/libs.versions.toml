@@ -28,8 +28,11 @@ spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 
 # -- other
 slf4j-api = "org.slf4j:slf4j-api"
+kotlin-logging-jvm = "io.github.oshai:kotlin-logging-jvm:7.0.13"
+
 jakarta-validation-api = "jakarta.validation:jakarta.validation-api"
 hibernate-validator = "org.hibernate.validator:hibernate-validator"
+
 jackson-core = "tools.jackson.core:jackson-core"
 jackson-databind = "tools.jackson.core:jackson-databind"
 jackson-module-kotlin = "tools.jackson.module:jackson-module-kotlin"
