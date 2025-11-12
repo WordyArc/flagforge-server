@@ -140,7 +140,7 @@ abstract class AbstractFlagCommandHandler<T : FlagCommandPayload>(
 
     protected val log = LoggerFactory.getLogger(javaClass)
 
-    final override val stateType: KClass<out FlagState>? = FlagState::class
+    final override val stateType: KClass<out FlagState> = FlagState::class
 
     override fun handleMessage(message: CommandMessage<T>, context: CommandContext<FlagState>): MessageHandlingResult.Command =
         handle(message, context)

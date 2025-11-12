@@ -62,8 +62,7 @@ fun <T> T.toFlagEventMessage(
     correlationId: String? = null,
     timestamp: Instant = Instant.now(),
     messageId: String = Uuid.random().toString(),
-): EventMessage<T>
-    where T : FlagEventPayload = eventMessage(
+): EventMessage<T> where T : FlagEventPayload = eventMessage(
     aggregateId = flagId,
     aggregateType = AggregateType.FLAG,
     actorId = actorId,

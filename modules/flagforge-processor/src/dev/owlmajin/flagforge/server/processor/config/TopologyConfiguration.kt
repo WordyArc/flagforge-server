@@ -2,9 +2,9 @@ package dev.owlmajin.flagforge.server.processor.config
 
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.CommandMessage
-import dev.owlmajin.flagforge.server.model.CreateFlagCommand
 import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.FlagEventPayload
+import dev.owlmajin.flagforge.server.model.FlagCommandPayload
 import dev.owlmajin.flagforge.server.model.FlagState
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.model.MessageKind
@@ -90,34 +90,36 @@ class TopologyConfiguration(
                 )
             }
 
-    val createFlagCommands: KStream<String, CommandMessage<CreateFlagCommand>> =
+        val flagCommands: KStream<String, CommandMessage<FlagCommandPayload>> =
             commands
                 .filter { _, message ->
                     message != null &&
                         message.header.kind == MessageKind.COMMAND &&
-                        message.payload is CreateFlagCommand
+                        message.payload is FlagCommandPayload
                 }
                 .mapValues { message ->
                     @Suppress("UNCHECKED_CAST")
-                    message as CommandMessage<CreateFlagCommand>
+                    message as CommandMessage<FlagCommandPayload>
                 }
                 .peek { key, command ->
                     log.info(
-                        "Processing CreateFlag command: key={}, flagId={}, commandId={}",
+                        "Processing flag command: key={}, flagId={}, payloadType={}, commandId={}",
                         key,
                         command.payload.flagId,
+                        command.payload::class.simpleName,
                         command.header.id,
                     )
                 }
 
         val commandResults: KStream<String, MessageHandlingResult.Command> =
-            createFlagCommands
+            flagCommands
                 .leftJoin(
                     flagState,
                     { command, currentState ->
                         log.info(
-                            "CreateFlag with state: flagId={}, currentVersion={}",
+                            "Flag command with state: flagId={}, payloadType={}, currentVersion={}",
                             command.payload.flagId,
+                            command.payload::class.simpleName,
                             currentState?.version,
                         )
                         messageProcessor.processCommand(command, currentState)

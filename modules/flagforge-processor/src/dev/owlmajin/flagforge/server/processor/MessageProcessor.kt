@@ -4,182 +4,122 @@ import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.CommandPayload
 import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.EventPayload
+import dev.owlmajin.flagforge.server.model.Message
+import dev.owlmajin.flagforge.server.model.MessagePayload
 import dev.owlmajin.flagforge.server.processor.handler.CommandContext
 import dev.owlmajin.flagforge.server.processor.handler.CommandMessageHandler
 import dev.owlmajin.flagforge.server.processor.handler.EventContext
 import dev.owlmajin.flagforge.server.processor.handler.EventMessageHandler
 import dev.owlmajin.flagforge.server.processor.handler.MessageHandlingResult
+import dev.owlmajin.flagforge.server.processor.handler.requireTypeOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.reflect.KClass
+import kotlin.reflect.full.safeCast
 
 @Service
 class MessageProcessor(
-    commandHandlers: List<CommandMessageHandler<*, *>>, 
-    eventHandlers: List<EventMessageHandler<*, *>>, 
+    commandHandlers: List<CommandMessageHandler<*, *>>,
+    eventHandlers: List<EventMessageHandler<*, *>>,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val commandHandlersIndex: List<CommandHandlerEntry> =
-        commandHandlers.map { handler ->
-            @Suppress("UNCHECKED_CAST")
-            CommandHandlerEntry(
-                handler = handler,
-                payloadType = handler.payloadType as KClass<out CommandPayload>,
-                stateType = handler.stateType as KClass<out Any>?,
-            )
-        }
+    private val commandRoutes: List<CommandRoute> =
+        commandHandlers.map { handler -> handler.asRoute(log) }
+            .also { ensureUnique(it.map(CommandRoute::primaryType)) }
 
-    private val eventHandlersIndex: List<EventHandlerEntry> =
-        eventHandlers.map { handler ->
-            @Suppress("UNCHECKED_CAST")
-            EventHandlerEntry(
-                handler = handler,
-                payloadType = handler.payloadType as KClass<out EventPayload>,
-                stateType = handler.stateType as KClass<out Any>?,
-            )
-        }
+    private val eventRoutes: List<EventRoute> =
+        eventHandlers.map { handler -> handler.asRoute(log) }
+            .also { ensureUnique(it.map(EventRoute::primaryType)) }
 
     fun processCommand(command: CommandMessage<out CommandPayload>, currentState: Any? = null): MessageHandlingResult.Command {
-        val entry = findCommandHandler(command)
-        return entry.handle(command, currentState, log)
+        val route = commandRoutes.firstOrNull { it.supports(command.payload::class) }
+            ?: error("No command handler registered for payload type ${command.payload::class.qualifiedName}")
+        return route.execute(command, currentState)
     }
 
     fun processEvent(event: EventMessage<out EventPayload>, currentState: Any? = null): MessageHandlingResult.Event {
-        val entry = findEventHandler(event)
-        if (entry == null) {
+        val route = eventRoutes.firstOrNull { it.supports(event.payload::class) }
+        if (route == null) {
             log.debug("No handler registered for event payload {}", event.payload::class.qualifiedName)
             return MessageHandlingResult.EventIgnored
         }
-        return entry.handle(event, currentState, log)
+        return route.execute(event, currentState)
     }
 
-    private fun findCommandHandler(command: CommandMessage<out CommandPayload>): CommandHandlerEntry {
-        val payloadClass = command.payload::class
-        val exact = commandHandlersIndex.firstOrNull { it.payloadType == payloadClass }
-
-        return exact
-            ?: commandHandlersIndex.firstOrNull { it.payloadType.java.isAssignableFrom(payloadClass.java) }
-            ?: error("No command handler registered for payload type ${payloadClass.qualifiedName}")
+    private interface CommandRoute {
+        val primaryType: KClass<out CommandPayload>
+        fun supports(payloadType: KClass<out CommandPayload>): Boolean
+        fun execute(command: CommandMessage<out CommandPayload>, currentState: Any?): MessageHandlingResult.Command
     }
 
-    private fun findEventHandler(event: EventMessage<out EventPayload>): EventHandlerEntry? {
-        val payloadClass = event.payload::class
-        val exact = eventHandlersIndex.firstOrNull { it.payloadType == payloadClass }
-
-        return exact
-            ?: eventHandlersIndex.firstOrNull { it.payloadType.java.isAssignableFrom(payloadClass.java) }
+    private interface EventRoute {
+        val primaryType: KClass<out EventPayload>
+        fun supports(payloadType: KClass<out EventPayload>): Boolean
+        fun execute(event: EventMessage<out EventPayload>, currentState: Any?): MessageHandlingResult.Event
     }
 
-    private data class CommandHandlerEntry(
-        val handler: CommandMessageHandler<*, *>,
-        val payloadType: KClass<out CommandPayload>,
-        val stateType: KClass<out Any>?,
-    ) {
-        fun handle(command: CommandMessage<out CommandPayload>, state: Any?, log: Logger): MessageHandlingResult.Command {
-            val typedCommand = castCommand(command)
-            val typedState = castState(state)
-            val context = commandContext(typedState)
+    private fun <P : CommandPayload, S : Any> CommandMessageHandler<P, S>.asRoute(log: Logger): CommandRoute =
+        object : CommandRoute {
+            override val primaryType: KClass<out CommandPayload> = this@asRoute.payloadType
 
-            val typedHandler = asHandler()
+            override fun supports(payloadType: KClass<out CommandPayload>): Boolean =
+                primaryType == payloadType || primaryType.java.isAssignableFrom(payloadType.java)
 
-            if (!typedHandler.isMessageValid(typedCommand, context)) {
-                log.debug("Command {} failed validation", typedCommand.payload::class.simpleName)
-                return MessageHandlingResult.CommandIgnored
+            override fun execute(
+                command: CommandMessage<out CommandPayload>,
+                currentState: Any?,
+            ): MessageHandlingResult.Command {
+                val typedMessage = command.castPayload(this@asRoute.payloadType)
+                val typedState = currentState.requireTypeOrNull(stateType)
+                val context = CommandContext(typedState)
+
+                return if (!isMessageValid(typedMessage, context)) {
+                    log.debug("Command {} failed validation", typedMessage.payload::class.simpleName)
+                    MessageHandlingResult.CommandIgnored
+                } else {
+                    handleMessage(typedMessage, context)
+                }
             }
-
-            return typedHandler.handleMessage(typedCommand, context)
         }
 
-        private fun castCommand(command: CommandMessage<out CommandPayload>): CommandMessage<CommandPayload> {
-            val payload = command.payload
-            if (!payloadType.java.isInstance(payload)) {
-                error(
-                    "Command payload type mismatch: expected ${payloadType.qualifiedName}, actual ${payload::class.qualifiedName}",
-                )
-            }
+    private fun <P : EventPayload, S : Any> EventMessageHandler<P, S>.asRoute(log: Logger): EventRoute =
+        object : EventRoute {
+            override val primaryType: KClass<out EventPayload> = this@asRoute.payloadType
 
-            @Suppress("UNCHECKED_CAST")
-            return command as CommandMessage<CommandPayload>
+            override fun supports(payloadType: KClass<out EventPayload>): Boolean =
+                primaryType == payloadType || primaryType.java.isAssignableFrom(payloadType.java)
+
+            override fun execute(
+                event: EventMessage<out EventPayload>,
+                currentState: Any?,
+            ): MessageHandlingResult.Event {
+                val typedEvent = event.castPayload(this@asRoute.payloadType)
+                val typedState = currentState.requireTypeOrNull(stateType)
+                val context = EventContext(typedState)
+
+                return if (!isMessageValid(typedEvent, context)) {
+                    log.debug("Event {} failed validation", typedEvent.payload::class.simpleName)
+                    MessageHandlingResult.EventIgnored
+                } else {
+                    handleMessage(typedEvent, context)
+                }
+            }
         }
 
-        private fun castState(state: Any?): Any? {
-            if (state == null || stateType == null) {
-                return null
-            }
-
-            if (!stateType.java.isInstance(state)) {
-                throw IllegalArgumentException(
-                    "State type mismatch: expected ${stateType.qualifiedName}, actual ${state::class.qualifiedName}",
-                )
-            }
-
-            return state
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        private fun asHandler(): CommandMessageHandler<CommandPayload, Any> =
-            handler as CommandMessageHandler<CommandPayload, Any>
-
-        @Suppress("UNCHECKED_CAST")
-        private fun commandContext(state: Any?): CommandContext<Any> =
-            CommandContext<Any>(state as Any?)
+    private fun <P : MessagePayload> Message<out MessagePayload>.castPayload(expected: KClass<out P>): Message<P> {
+        val typedPayload = expected.safeCast(payload)
+            ?: error("Payload type mismatch: expected ${expected.qualifiedName}, actual ${payload::class.qualifiedName}")
+        return Message(header, typedPayload)
     }
 
-    private data class EventHandlerEntry(
-        val handler: EventMessageHandler<*, *>,
-        val payloadType: KClass<out EventPayload>,
-        val stateType: KClass<out Any>?,
-    ) {
-        fun handle(event: EventMessage<out EventPayload>, state: Any?, log: Logger): MessageHandlingResult.Event {
-            val typedEvent = castEvent(event)
-            val typedState = castState(state)
-            val context = eventContext(typedState)
-
-            val typedHandler = asHandler()
-
-            if (!typedHandler.isMessageValid(typedEvent, context)) {
-                log.debug("Event {} failed validation", typedEvent.payload::class.simpleName)
-                return MessageHandlingResult.EventIgnored
-            }
-
-            return typedHandler.handleMessage(typedEvent, context)
+    private fun <T : Any> ensureUnique(types: List<KClass<out T>>) {
+        val duplicates = types.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+        require(duplicates.isEmpty()) {
+            val names = duplicates.joinToString { it.qualifiedName ?: it.simpleName ?: it.toString() }
+            "Duplicate handlers registered for payload types: $names"
         }
-
-        private fun castEvent(event: EventMessage<out EventPayload>): EventMessage<EventPayload> {
-            val payload = event.payload
-            if (!payloadType.java.isInstance(payload)) {
-                error(
-                    "Event payload type mismatch: expected ${payloadType.qualifiedName}, actual ${payload::class.qualifiedName}",
-                )
-            }
-
-            @Suppress("UNCHECKED_CAST")
-            return event as EventMessage<EventPayload>
-        }
-
-        private fun castState(state: Any?): Any? {
-            if (state == null || stateType == null) {
-                return null
-            }
-
-            if (!stateType.java.isInstance(state)) {
-                throw IllegalArgumentException(
-                    "State type mismatch: expected ${stateType.qualifiedName}, actual ${state::class.qualifiedName}",
-                )
-            }
-
-            return state
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        private fun asHandler(): EventMessageHandler<EventPayload, Any> =
-            handler as EventMessageHandler<EventPayload, Any>
-
-        @Suppress("UNCHECKED_CAST")
-        private fun eventContext(state: Any?): EventContext<Any> =
-            EventContext<Any>(state as Any?)
     }
 }

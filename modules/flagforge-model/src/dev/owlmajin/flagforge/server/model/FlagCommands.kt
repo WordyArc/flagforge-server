@@ -50,8 +50,7 @@ fun <T> T.toFlagCommandMessage(
     correlationId: String? = null,
     timestamp: Instant = Instant.now(),
     messageId: String = Uuid.random().toString(),
-): CommandMessage<T>
-    where T : FlagCommandPayload = commandMessage(
+): CommandMessage<T> where T : FlagCommandPayload = commandMessage(
     aggregateId = flagId,
     aggregateType = AggregateType.FLAG,
     actorId = actorId,
