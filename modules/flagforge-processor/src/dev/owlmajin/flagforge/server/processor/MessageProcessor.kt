@@ -12,7 +12,6 @@ import dev.owlmajin.flagforge.server.processor.handler.EventContext
 import dev.owlmajin.flagforge.server.processor.handler.EventMessageHandler
 import dev.owlmajin.flagforge.server.processor.handler.MessageHandlingResult
 import dev.owlmajin.flagforge.server.processor.handler.requireTypeOrNull
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.reflect.KClass
@@ -27,11 +26,11 @@ class MessageProcessor(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val commandRoutes: List<CommandRoute> =
-        commandHandlers.map { handler -> handler.asRoute(log) }
+        commandHandlers.map { handler -> handler.asRoute() }
             .also { ensureUnique(it.map(CommandRoute::primaryType)) }
 
     private val eventRoutes: List<EventRoute> =
-        eventHandlers.map { handler -> handler.asRoute(log) }
+        eventHandlers.map { handler -> handler.asRoute() }
             .also { ensureUnique(it.map(EventRoute::primaryType)) }
 
     fun processCommand(command: CommandMessage<out CommandPayload>, currentState: Any? = null): MessageHandlingResult.Command {
@@ -61,7 +60,7 @@ class MessageProcessor(
         fun execute(event: EventMessage<out EventPayload>, currentState: Any?): MessageHandlingResult.Event
     }
 
-    private fun <P : CommandPayload, S : Any> CommandMessageHandler<P, S>.asRoute(log: Logger): CommandRoute =
+    private fun <P : CommandPayload, S : Any> CommandMessageHandler<P, S>.asRoute(): CommandRoute =
         object : CommandRoute {
             override val primaryType: KClass<out CommandPayload> = this@asRoute.payloadType
 
@@ -85,7 +84,7 @@ class MessageProcessor(
             }
         }
 
-    private fun <P : EventPayload, S : Any> EventMessageHandler<P, S>.asRoute(log: Logger): EventRoute =
+    private fun <P : EventPayload, S : Any> EventMessageHandler<P, S>.asRoute(): EventRoute =
         object : EventRoute {
             override val primaryType: KClass<out EventPayload> = this@asRoute.payloadType
 
