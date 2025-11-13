@@ -1,5 +1,5 @@
 ### Create project
-POST http://localhost:8080/api/v1/control/projects
+POST http://localhost:8184/api/v1/control/projects
 X-Actor-Id: test-user
 Content-Type: application/json
 
@@ -9,9 +9,9 @@ Content-Type: application/json
 }
 
 ### Create environment
-@eProjectId = 474e8c8a-f8a1-4eb5-99cb-4c4c838a229c
+@eProjectId =c259ffc6-c58e-4452-922b-1e66d6f9a701
 
-POST http://localhost:8080/api/v1/control/projects/{{eProjectId}}/envs
+POST http://localhost:8184/api/v1/control/projects/{{eProjectId}}/envs
 X-Actor-Id: test-user
 Content-Type: application/json
 
@@ -21,9 +21,9 @@ Content-Type: application/json
 }
 
 ### Create flag
-@fProjectId = 474e8c8a-f8a1-4eb5-99cb-4c4c838a229c
+@fProjectId =c259ffc6-c58e-4452-922b-1e66d6f9a701
 @environmentKey = dev
-POST http://localhost:8080/api/v1/control/projects/{{fProjectId}}/envs/{{environmentKey}}/flags
+POST http://localhost:8184/api/v1/control/projects/{{fProjectId}}/envs/{{environmentKey}}/flags
 X-Actor-Id: test-user
 Content-Type: application/json
 

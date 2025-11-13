@@ -8,9 +8,10 @@ dependencies:
   - ../flagforge-model
   - ../flagforge-common
   - ../flagforge-common-kafka
+  - ../flagforge-common-streams
 
   - $libs.spring.context
-  - org.apache.kafka:kafka-streams
+  - $libs.kafka.streams
   - $libs.spring.kafka
   - $libs.spring.boot.kafka
   - $libs.slf4j.api

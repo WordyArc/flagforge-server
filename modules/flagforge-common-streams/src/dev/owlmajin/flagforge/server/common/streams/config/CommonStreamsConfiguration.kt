@@ -24,6 +24,7 @@ import org.springframework.kafka.support.serializer.JacksonJsonSerde
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinFeature
 import tools.jackson.module.kotlin.KotlinModule
+import tools.jackson.module.kotlin.jsonMapper
 import tools.jackson.module.kotlin.kotlinModule
 
 @Import(CommonKafkaConfiguration::class)
@@ -39,7 +40,7 @@ class CommonStreamsConfiguration {
     }
 
     @Bean
-    fun jsonMapper(createKotlinModule: KotlinModule): JsonMapper = tools.jackson.module.kotlin.jsonMapper {
+    fun jsonMapper(createKotlinModule: KotlinModule): JsonMapper = jsonMapper {
         addModule(createKotlinModule)
     }
 
