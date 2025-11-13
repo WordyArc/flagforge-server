@@ -1,0 +1,54 @@
+package dev.owlmajin.flagforge.server.common.streams.serde
+
+import dev.owlmajin.flagforge.server.common.kafka.serde.KafkaJacksonTypeMapper
+import dev.owlmajin.flagforge.server.model.Message
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.apache.kafka.common.header.Headers
+import org.apache.kafka.common.serialization.Serializer
+import org.springframework.kafka.support.serializer.JacksonJsonSerializer
+import tools.jackson.databind.json.JsonMapper
+
+class KafkaStreamsSerializer(jsonMapper: JsonMapper) : Serializer<Message<*>> {
+
+    private val klog = KotlinLogging.logger { javaClass }
+
+    /*private val delegate = JacksonJsonSerde<Any>(jsonMapper).serializer().apply {
+        setAddTypeInfo(true)
+    }*/
+
+    private val delegate = JacksonJsonSerializer<Message<*>>(jsonMapper).apply {
+        val mapper = KafkaJacksonTypeMapper().apply {
+            addTrustedPackages("dev.owlmajin.flagforge.server.model", "*")
+        }
+        setTypeMapper(mapper)
+        setAddTypeInfo(true)
+    }
+
+    override fun configure(configs: MutableMap<String, *>?, isKey: Boolean) {
+        configs?.let { delegate.configure(it, isKey) }
+    }
+
+    override fun serialize(topic: String, data: Message<*>?): ByteArray? =
+        data?.let {
+            try {
+                delegate.serialize(topic, it)
+            } catch (ex: Exception) {
+                klog.error(ex) {"Failed to serialize message for topic=$topic" }
+                null
+            }
+        }
+
+    override fun serialize(topic: String, headers: Headers, data: Message<*>?): ByteArray? =
+        data?.let {
+            try {
+                delegate.serialize(topic, headers, it)
+            } catch (ex: Exception) {
+                klog.error(ex) { "Failed to serialize message for topic=$topic" }
+                null
+            }
+        }
+
+    override fun close() {
+        delegate.close()
+    }
+}

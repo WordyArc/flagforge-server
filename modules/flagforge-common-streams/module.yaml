@@ -1,0 +1,16 @@
+product: jvm/app
+
+apply:
+  - ../../common.module-template.yaml
+  - ../../spring.module-template.yaml
+
+dependencies:
+  - ../flagforge-model
+  - ../flagforge-common-kafka
+
+  - $libs.spring.context
+  - $libs.kafka.streams
+  - $libs.spring.kafka
+  - $libs.spring.boot.kafka
+  - $libs.jackson.databind
+  - $libs.jackson.module.kotlin
