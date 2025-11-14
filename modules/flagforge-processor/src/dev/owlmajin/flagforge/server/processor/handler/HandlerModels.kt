@@ -10,18 +10,19 @@ data class CommandContext<S : Any>(
     val currentState: S?,
 )
 
+
+data class EventContext<S : Any>(
+    val currentState: S?,
+)
+
 interface CommandMessageHandler<P : CommandPayload, S : Any> {
     val payloadType: KClass<out P>
     val stateType: KClass<out S>?
 
     fun isMessageValid(message: CommandMessage<P>, context: CommandContext<S>): Boolean = true
 
-    fun handleMessage(message: CommandMessage<P>, context: CommandContext<S>): MessageHandlingResult.Command
+    fun handleMessage(message: CommandMessage<P>, context: CommandContext<S>): CommandResult
 }
-
-data class EventContext<S : Any>(
-    val currentState: S?,
-)
 
 interface EventMessageHandler<P : EventPayload, S : Any> {
     val payloadType: KClass<out P>
@@ -29,28 +30,30 @@ interface EventMessageHandler<P : EventPayload, S : Any> {
 
     fun isMessageValid(message: EventMessage<P>, context: EventContext<S>): Boolean = true
 
-    fun handleMessage(message: EventMessage<P>, context: EventContext<S>): MessageHandlingResult.Event
+    fun handleMessage(message: EventMessage<P>, context: EventContext<S>): EventResult
 }
 
-sealed interface MessageHandlingResult {
+sealed interface CommandResult {
+    val event: EventMessage<*>?
 
-    sealed interface Command : MessageHandlingResult
+    data class Applied(
+        override val event: EventMessage<*>,
+    ) : CommandResult
 
-    data class CommandApplied<E : EventPayload>(
-        val event: EventMessage<E>,
-    ) : Command
+    data class Rejected(
+        override val event: EventMessage<*>,
+    ) : CommandResult
 
-    data class CommandRejected<E : EventPayload>(
-        val event: EventMessage<E>,
-    ) : Command
+    data object Ignored : CommandResult {
+        override val event: EventMessage<*>? = null
+    }
+}
 
-    data object CommandIgnored : Command
+sealed interface EventResult {
 
-    sealed interface Event : MessageHandlingResult
-
-    data class EventApplied<S>(
+    data class Applied<S: Any?>(
         val newState: S?,
-    ) : Event
+    ) : EventResult
 
-    data object EventIgnored : Event
+    data object Ignored : EventResult
 }

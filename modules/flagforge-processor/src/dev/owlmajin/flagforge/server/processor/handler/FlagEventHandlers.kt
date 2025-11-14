@@ -14,7 +14,7 @@ class FlagCreatedEventHandler : AbstractFlagEventHandler<FlagCreatedEvent>(FlagC
     override fun handle(
         message: EventMessage<FlagCreatedEvent>,
         context: EventContext<FlagState>,
-    ): MessageHandlingResult.Event {
+    ): EventResult {
         val current = context.currentState
         val payload = message.payload
 
@@ -24,7 +24,7 @@ class FlagCreatedEventHandler : AbstractFlagEventHandler<FlagCreatedEvent>(FlagC
                 payload.flagId,
                 current.version,
             )
-            return MessageHandlingResult.EventIgnored
+            return EventResult.Ignored
         }
 
         val state = FlagState(
@@ -41,7 +41,7 @@ class FlagCreatedEventHandler : AbstractFlagEventHandler<FlagCreatedEvent>(FlagC
             updatedAt = message.header.timestamp,
         )
 
-        return MessageHandlingResult.EventApplied(state)
+        return EventResult.Applied(state)
     }
 }
 
@@ -56,10 +56,10 @@ abstract class AbstractFlagEventHandler<T : FlagEventPayload>(
     final override fun handleMessage(
         message: EventMessage<T>,
         context: EventContext<FlagState>,
-    ): MessageHandlingResult.Event = handle(message, context)
+    ): EventResult = handle(message, context)
 
     protected abstract fun handle(
         message: EventMessage<T>,
         context: EventContext<FlagState>,
-    ): MessageHandlingResult.Event
+    ): EventResult
 }

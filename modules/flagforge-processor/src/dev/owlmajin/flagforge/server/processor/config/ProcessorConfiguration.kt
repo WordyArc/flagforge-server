@@ -59,13 +59,13 @@ class ProcessorConfiguration() {
 
     @Bean
     fun messageSerde(jsonMapper: JsonMapper): Serde<Message<*>> =
-        StreamsSerdes.json(Message::class.java as Class<Message<*>>, jsonMapper)
+        StreamsSerdes.json<Message<*>>(jsonMapper)
 
     @Bean
     fun flagStateSerde(jsonMapper: JsonMapper): Serde<FlagState> =
-        StreamsSerdes.json(FlagState::class.java, jsonMapper)
+        StreamsSerdes.json<FlagState>(jsonMapper)
 
     @Bean
     fun anySerde(jsonMapper: JsonMapper): Serde<Any> =
-        StreamsSerdes.json(Any::class.java, jsonMapper)
+        StreamsSerdes.json<Any>(jsonMapper)
 }

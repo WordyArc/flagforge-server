@@ -30,4 +30,7 @@ object StreamsSerdes {
         )
     }
 
+    inline fun <reified T : Any> json(mapper: JsonMapper): Serde<T> =
+        json(T::class.java, mapper)
+
 }

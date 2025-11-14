@@ -19,7 +19,11 @@ import org.springframework.stereotype.Component
 @Component
 class CreateFlagHandler : AbstractFlagCommandHandler<CreateFlagCommand>(CreateFlagCommand::class) {
 
-    override fun handle(message: CommandMessage<CreateFlagCommand>, context: CommandContext<FlagState>): MessageHandlingResult.Command {
+
+    override fun handle(
+        message: CommandMessage<CreateFlagCommand>,
+        context: CommandContext<FlagState>,
+    ): CommandResult {
         val payload = message.payload
         val current = context.currentState
 
@@ -35,7 +39,6 @@ class CreateFlagHandler : AbstractFlagCommandHandler<CreateFlagCommand>(CreateFl
 
         validateFlagDefinitionOrReject(message)?.let { return it }
 
-
         val event: EventMessage<FlagCreatedEvent> = FlagCreatedEvent(
             flagId = payload.flagId,
             commandId = message.header.id,
@@ -50,12 +53,12 @@ class CreateFlagHandler : AbstractFlagCommandHandler<CreateFlagCommand>(CreateFl
             salt = payload.salt,
         ).toFlagEvent(message)
 
-        return MessageHandlingResult.CommandApplied(event)
+        return CommandResult.Applied(event)
     }
 
     private fun validateFlagDefinitionOrReject(
         command: CommandMessage<CreateFlagCommand>,
-    ): MessageHandlingResult.CommandRejected<CommandRejectedEvent>? {
+    ): CommandResult.Rejected? {
         val payload = command.payload
         validateCommonRules(payload)?.let { reason ->
             log.debug("CreateFlag rejected by common rule validation. flagId={}, code={}", payload.flagId, reason)
@@ -142,13 +145,15 @@ abstract class AbstractFlagCommandHandler<T : FlagCommandPayload>(
 
     final override val stateType: KClass<out FlagState> = FlagState::class
 
-    override fun handleMessage(message: CommandMessage<T>, context: CommandContext<FlagState>): MessageHandlingResult.Command =
-        handle(message, context)
+    final override fun handleMessage(
+        message: CommandMessage<T>,
+        context: CommandContext<FlagState>,
+    ): CommandResult = handle(message, context)
 
     protected abstract fun handle(
         message: CommandMessage<T>,
         context: CommandContext<FlagState>,
-    ): MessageHandlingResult.Command
+    ): CommandResult
 
     protected fun <T : FlagEventPayload> T.toFlagEvent(
         command: CommandMessage<*>,
@@ -164,7 +169,7 @@ abstract class AbstractFlagCommandHandler<T : FlagCommandPayload>(
         version: Long,
         reason: String,
         errorCode: String,
-    ): MessageHandlingResult.CommandRejected<CommandRejectedEvent> {
+    ): CommandResult.Rejected {
         val payload = CommandRejectedEvent(
             flagId = command.payload.flagId,
             commandId = command.header.id,
@@ -174,6 +179,6 @@ abstract class AbstractFlagCommandHandler<T : FlagCommandPayload>(
         )
 
         val event: EventMessage<CommandRejectedEvent> = payload.toFlagEvent(command)
-        return MessageHandlingResult.CommandRejected(event)
+        return CommandResult.Rejected(event)
     }
 }
