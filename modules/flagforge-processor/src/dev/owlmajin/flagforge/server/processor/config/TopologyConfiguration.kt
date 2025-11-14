@@ -1,13 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.config
 
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
-import dev.owlmajin.flagforge.server.model.CommandMessage
-import dev.owlmajin.flagforge.server.model.EventMessage
-import dev.owlmajin.flagforge.server.model.FlagEventPayload
-import dev.owlmajin.flagforge.server.model.FlagCommandPayload
-import dev.owlmajin.flagforge.server.model.FlagState
-import dev.owlmajin.flagforge.server.model.Message
-import dev.owlmajin.flagforge.server.model.MessageKind
+import dev.owlmajin.flagforge.server.model.*
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handler.MessageHandlingResult
 import org.apache.kafka.common.serialization.Serde
@@ -28,7 +22,7 @@ class TopologyConfiguration(
     private val persistenceProperties: PersistenceProperties,
     private val messageProcessor: MessageProcessor,
     private val messageSerde: Serde<Message<*>>,
-    private val flagStateSerde: JacksonJsonSerde<FlagState>,
+    private val flagStateSerde: Serde<FlagState>,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
