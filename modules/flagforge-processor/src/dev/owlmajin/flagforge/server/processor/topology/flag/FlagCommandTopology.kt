@@ -9,8 +9,8 @@ import dev.owlmajin.flagforge.server.processor.streams.Topics
 import dev.owlmajin.flagforge.server.processor.streams.commandsOf
 import dev.owlmajin.flagforge.server.processor.streams.publishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
-import dev.owlmajin.flagforge.server.processor.streams.table
 import dev.owlmajin.flagforge.server.processor.streams.withState
+import dev.owlmajin.flagforge.server.processor.topology.StateTables
 import dev.owlmajin.flagforge.server.processor.topology.StreamsTopology
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.StreamsBuilder
@@ -21,12 +21,13 @@ import org.springframework.stereotype.Component
 class FlagCommandTopology(
     private val topics: Topics,
     private val messageProcessor: MessageProcessor,
+    private val stateTables: StateTables,
 ): StreamsTopology {
     private val log = KotlinLogging.logger { javaClass }
 
     override fun configure(builder: StreamsBuilder) = with(builder) {
         log.info { "Configuring FlagCommandTopology" }
-        val flagState: KTable<String, FlagState> = table(topics.flagState)
+        val flagState: KTable<String, FlagState> = stateTables.flagState(builder)
 
         stream(topics.commands)
             .logIncomingCommands()

@@ -17,3 +17,4 @@ dependencies:
   - $libs.slf4j.api
   - $libs.jackson.databind
   - $libs.jackson.module.kotlin
+  - $libs.jakarta.annotation.api

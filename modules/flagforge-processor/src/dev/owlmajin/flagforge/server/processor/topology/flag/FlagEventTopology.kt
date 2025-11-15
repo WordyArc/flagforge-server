@@ -9,8 +9,8 @@ import dev.owlmajin.flagforge.server.processor.streams.Topics
 import dev.owlmajin.flagforge.server.processor.streams.eventsOf
 import dev.owlmajin.flagforge.server.processor.streams.nullablePublishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
-import dev.owlmajin.flagforge.server.processor.streams.table
 import dev.owlmajin.flagforge.server.processor.streams.withState
+import dev.owlmajin.flagforge.server.processor.topology.StateTables
 import dev.owlmajin.flagforge.server.processor.topology.StreamsTopology
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.KeyValue
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component
 class FlagEventTopology(
     private val topics: Topics,
     private val messageProcessor: MessageProcessor,
+    private val stateTables: StateTables,
 ) : StreamsTopology {
 
     private val log = KotlinLogging.logger { javaClass }
@@ -29,7 +30,7 @@ class FlagEventTopology(
     override fun configure(builder: StreamsBuilder) = with(builder) {
         log.info { "Configuring FlagEventTopology" }
 
-        val flagState: KTable<String, FlagState> = table(topics.flagState)
+        val flagState: KTable<String, FlagState> = stateTables.flagState(builder)
         val eventResults =
             stream(topics.events)
                 .logIncomingEvents()
