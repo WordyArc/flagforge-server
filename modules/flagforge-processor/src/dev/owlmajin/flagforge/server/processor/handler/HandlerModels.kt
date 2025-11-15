@@ -10,7 +10,6 @@ data class CommandContext<S : Any>(
     val currentState: S?,
 )
 
-
 data class EventContext<S : Any>(
     val currentState: S?,
 )
@@ -52,6 +51,7 @@ sealed interface CommandResult {
 sealed interface EventResult {
 
     data class Applied<S: Any?>(
+        val previousState: S?,
         val newState: S?,
     ) : EventResult
 

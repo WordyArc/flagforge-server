@@ -4,6 +4,7 @@ import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.FlagCreatedEvent
 import dev.owlmajin.flagforge.server.model.FlagEventPayload
 import dev.owlmajin.flagforge.server.model.FlagState
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.KClass
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -19,11 +20,7 @@ class FlagCreatedEventHandler : AbstractFlagEventHandler<FlagCreatedEvent>(FlagC
         val payload = message.payload
 
         if (current != null) {
-            log.warn(
-                "FlagCreated ignored because state already exists. flagId={}, currentVersion={}",
-                payload.flagId,
-                current.version,
-            )
+            klog.warn { "FlagCreated ignored because state already exists. flagId=${payload.flagId}, currentVersion=${current.version}" }
             return EventResult.Ignored
         }
 
@@ -41,7 +38,7 @@ class FlagCreatedEventHandler : AbstractFlagEventHandler<FlagCreatedEvent>(FlagC
             updatedAt = message.header.timestamp,
         )
 
-        return EventResult.Applied(state)
+        return EventResult.Applied(current, state)
     }
 }
 
@@ -49,7 +46,7 @@ abstract class AbstractFlagEventHandler<T : FlagEventPayload>(
     override val payloadType: KClass<T>,
 ) : EventMessageHandler<T, FlagState> {
 
-    protected val log = LoggerFactory.getLogger(javaClass)
+    protected val klog = KotlinLogging.logger { javaClass }
 
     final override val stateType: KClass<out FlagState>? = FlagState::class
 

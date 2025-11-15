@@ -1,203 +1,30 @@
 package dev.owlmajin.flagforge.server.processor.config
 
-import dev.owlmajin.flagforge.server.model.*
-import dev.owlmajin.flagforge.server.processor.MessageProcessor
-import dev.owlmajin.flagforge.server.processor.handler.CommandResult
-import dev.owlmajin.flagforge.server.processor.handler.EventResult
+import dev.owlmajin.flagforge.server.processor.pipeline.StreamsPipeline
 import dev.owlmajin.flagforge.server.processor.rocksdb.Topics
-import dev.owlmajin.flagforge.server.processor.rocksdb.Topology
-import dev.owlmajin.flagforge.server.processor.rocksdb.commandsOf
-import dev.owlmajin.flagforge.server.processor.rocksdb.eventsOf
-import dev.owlmajin.flagforge.server.processor.rocksdb.into
-import dev.owlmajin.flagforge.server.processor.rocksdb.intoNullable
+import dev.owlmajin.flagforge.server.processor.rocksdb.builder
 import dev.owlmajin.flagforge.server.processor.rocksdb.topology
-import dev.owlmajin.flagforge.server.processor.rocksdb.withState
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.kstream.KStream
-import org.apache.kafka.streams.kstream.KTable
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import kotlin.jvm.javaClass
 
 @Configuration
 class TopologyConfiguration(
     private val topics: Topics,
-    private val messageProcessor: MessageProcessor,
+    private val pipelines: List<StreamsPipeline>,
 ) {
     private val klog = KotlinLogging.logger { javaClass }
 
-
     @Bean
-    fun flagCommandKStream(builder: StreamsBuilder, topics: Topics): KStream<String, CommandResult> =
+    fun kafkaStreamsTopology(builder: StreamsBuilder): Unit =
         builder.topology(topics) {
-            val flagState = initStateTables()
-
-            val commands = readAllCommands()
-
-            val flagCommands = extractFlagCommands(commands)
-
-            val commandResults = handleFlagCommands(flagCommands, flagState)
-
-            val events = publishFlagEvents(commandResults)
-
-            val eventResults = handleFlagEvents(events, flagState)
-
-            writeFlagState(eventResults)
-
-            buildFlagIndex(flagState)
-
-            commandResults
+            pipelines.forEach { pipeline ->
+                pipeline.build(this)
+            }
         }
 
 
-    private fun Topology.initStateTables(): KTable<String, FlagState> {
-        val flagState = table(topics.flagState)
-
-        table(topics.projectState)
-        table(topics.envState)
-        table(topics.segmentState)
-
-        return flagState
-    }
-
-
-    private fun Topology.readAllCommands(): KStream<String, Message<*>> =
-        stream(topics.commands)
-            .peek { key, value ->
-                klog.debug {
-                    "Incoming message: key=$key, kind=${value.header.kind}, payloadType=${value.payload::class.simpleName}"
-                }
-            }
-
-
-    private fun Topology.extractFlagCommands(
-        commands: KStream<String, Message<*>>,
-    ): KStream<String, CommandMessage<FlagCommandPayload>> =
-        commands
-            .commandsOf<FlagCommandPayload>()
-            .peek { key, command ->
-                klog.info {
-                    "Processing flag command: key=$key, flagId=${command.payload.flagId}, " +
-                            "payloadType=${command.payload::class.simpleName}, commandId=${command.header.id}"
-                }
-            }
-
-
-    private fun Topology.handleFlagCommands(
-        flagCommands: KStream<String, CommandMessage<FlagCommandPayload>>,
-        flagState: KTable<String, FlagState>,
-    ): KStream<String, CommandResult> =
-        flagCommands
-            .withState(flagState) { command, currentState ->
-                klog.info {
-                    "Flag command with state: flagId=${command.payload.flagId}, " +
-                            "payloadType=${command.payload::class.simpleName}, currentVersion=${currentState?.version}"
-                }
-                messageProcessor.processCommand(command, currentState)
-            }
-            .peek { key, result ->
-                klog.debug {
-                    when (result) {
-                        is CommandResult.Applied ->
-                            "Command applied: key=$key, eventPayload=${result.event?.payload?.let { it::class.simpleName }}"
-                        is CommandResult.Rejected ->
-                            "Command rejected: key=$key, payload=${result.event.payload}"
-                        CommandResult.Ignored ->
-                            "Command ignored: key=$key"
-                    }
-                }
-            }
-            .filter { _, result -> result !is CommandResult.Ignored }
-
-
-    private fun Topology.publishFlagEvents(
-        commandResults: KStream<String, CommandResult>,
-    ): KStream<String, Message<*>> {
-        val eventMessageSerde = topics.events.valueSerde
-
-        commandResults
-            .flatMapValues { result ->
-                when (result) {
-                    is CommandResult.Applied -> listOf(result.event)
-                    is CommandResult.Rejected -> listOf(result.event)
-                    CommandResult.Ignored -> emptyList()
-                }
-            }
-            .peek { key, event ->
-                klog.debug { "Produce flag-event. key=$key, payloadType=${event.payload::class.simpleName}" }
-            } into topics.events.copy(valueSerde = eventMessageSerde)
-
-        return stream(topics.events)
-    }
-
-
-    private fun handleFlagEvents(
-        events: KStream<String, Message<*>>,
-        flagState: KTable<String, FlagState>,
-    ): KStream<String, EventResult> {
-        val flagEvents: KStream<String, EventMessage<FlagEventPayload>> =
-            events
-                .peek { key, value ->
-                    klog.debug {
-                        "Incoming event: key=$key, kind=${value.header.kind}, payloadType=${value.payload::class.simpleName}"
-                    }
-                }.eventsOf<FlagEventPayload>()
-
-        return flagEvents
-            .withState(flagState) { event, currentState ->
-                klog.info {
-                    "Apply flag event: flagId=${event.payload.flagId}, " +
-                            "payloadType=${event.payload::class.simpleName}, currentVersion=${currentState?.version}"
-                }
-                messageProcessor.processEvent(event, currentState)
-            }
-            .peek { key, result ->
-                klog.debug {
-                    when (result) {
-                        is EventResult.Applied<*> -> "Event applied: key=$key, isTombstone=${result.newState == null}"
-                        EventResult.Ignored -> "Event ignored: key=$key"
-                    }
-                }
-            }
-            .filter { _, result -> result !is EventResult.Ignored }
-    }
-
-
-    private fun writeFlagState(
-        eventResults: KStream<String, EventResult>,
-    ) {
-        eventResults
-            .mapValues {
-                when (it) {
-                    is EventResult.Applied<*> -> it.newState as? FlagState
-                    EventResult.Ignored -> null
-                }
-            }
-            .peek { key, aggregate ->
-                klog.debug { "Produce flag-state. key=$key, isTombstone=${aggregate == null}" }
-            } intoNullable topics.flagState
-    }
-
-
-    private fun buildFlagIndex(
-        flagState: KTable<String, FlagState>,
-    ) {
-        flagState
-            .toStream()
-            .filter { _, aggregate -> aggregate != null }
-            .map { _, aggregate ->
-                val a = requireNotNull(aggregate)
-                KeyValue(
-                    "${a.projectId}|${a.environmentKey}|${a.key}",
-                    a.id,
-                )
-            }
-            .peek { key, value ->
-                klog.debug { "Produce flag-key-index. key=$key, flagId=$value" }
-            } into topics.flagKeyIndex
-    }
 
 }
 
