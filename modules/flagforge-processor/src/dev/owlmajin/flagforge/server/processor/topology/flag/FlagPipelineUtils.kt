@@ -1,7 +1,7 @@
-package dev.owlmajin.flagforge.server.processor.pipeline.flag
+package dev.owlmajin.flagforge.server.processor.topology.flag
 
 import dev.owlmajin.flagforge.server.model.Message
-import dev.owlmajin.flagforge.server.processor.pipeline.debugLog
+import dev.owlmajin.flagforge.server.processor.streams.debugLog
 import org.apache.kafka.streams.kstream.KStream
 
 fun KStream<String, Message<*>>.logIncomingCommands(): KStream<String, Message<*>> =

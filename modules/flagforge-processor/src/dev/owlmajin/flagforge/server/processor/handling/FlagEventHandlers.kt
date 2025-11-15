@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.processor.handler
+package dev.owlmajin.flagforge.server.processor.handling
 
 import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.FlagCreatedEvent
@@ -6,7 +6,6 @@ import dev.owlmajin.flagforge.server.model.FlagEventPayload
 import dev.owlmajin.flagforge.server.model.FlagState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.KClass
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -44,7 +43,7 @@ class FlagCreatedEventHandler : AbstractFlagEventHandler<FlagCreatedEvent>(FlagC
 
 abstract class AbstractFlagEventHandler<T : FlagEventPayload>(
     override val payloadType: KClass<T>,
-) : EventMessageHandler<T, FlagState> {
+) : EventHandler<T, FlagState> {
 
     protected val klog = KotlinLogging.logger { javaClass }
 

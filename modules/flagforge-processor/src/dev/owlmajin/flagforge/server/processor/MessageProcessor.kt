@@ -6,13 +6,13 @@ import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.EventPayload
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.model.MessagePayload
-import dev.owlmajin.flagforge.server.processor.handler.CommandContext
-import dev.owlmajin.flagforge.server.processor.handler.CommandMessageHandler
-import dev.owlmajin.flagforge.server.processor.handler.CommandResult
-import dev.owlmajin.flagforge.server.processor.handler.EventContext
-import dev.owlmajin.flagforge.server.processor.handler.EventMessageHandler
-import dev.owlmajin.flagforge.server.processor.handler.EventResult
-import dev.owlmajin.flagforge.server.processor.handler.requireTypeOrNull
+import dev.owlmajin.flagforge.server.processor.handling.CommandContext
+import dev.owlmajin.flagforge.server.processor.handling.CommandHandler
+import dev.owlmajin.flagforge.server.processor.handling.CommandResult
+import dev.owlmajin.flagforge.server.processor.handling.EventContext
+import dev.owlmajin.flagforge.server.processor.handling.EventHandler
+import dev.owlmajin.flagforge.server.processor.handling.EventResult
+import dev.owlmajin.flagforge.server.processor.handling.requireTypeOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import kotlin.reflect.KClass
@@ -20,8 +20,8 @@ import kotlin.reflect.full.safeCast
 
 @Service
 class MessageProcessor(
-    commandHandlers: List<CommandMessageHandler<*, *>>,
-    eventHandlers: List<EventMessageHandler<*, *>>,
+    commandHandlers: List<CommandHandler<*, *>>,
+    eventHandlers: List<EventHandler<*, *>>,
 ) {
     private val klog = KotlinLogging.logger { javaClass }
 
@@ -66,7 +66,7 @@ class MessageProcessor(
         fun execute(event: EventMessage<out EventPayload>, currentState: Any?): EventResult
     }
 
-    private fun <P : CommandPayload, S : Any> CommandMessageHandler<P, S>.asRoute(): CommandRoute =
+    private fun <P : CommandPayload, S : Any> CommandHandler<P, S>.asRoute(): CommandRoute =
         object : CommandRoute {
             override val primaryType: KClass<out CommandPayload> = this@asRoute.payloadType
 
@@ -90,7 +90,7 @@ class MessageProcessor(
             }
         }
 
-    private fun <P : EventPayload, S : Any> EventMessageHandler<P, S>.asRoute(): EventRoute =
+    private fun <P : EventPayload, S : Any> EventHandler<P, S>.asRoute(): EventRoute =
         object : EventRoute {
             override val primaryType: KClass<out EventPayload> = this@asRoute.payloadType
 

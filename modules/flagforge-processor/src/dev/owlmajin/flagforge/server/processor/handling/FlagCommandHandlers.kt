@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.processor.handler
+package dev.owlmajin.flagforge.server.processor.handling
 
 import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.CommandRejectedEvent
@@ -139,7 +139,7 @@ class CreateFlagHandler : AbstractFlagCommandHandler<CreateFlagCommand>(CreateFl
 
 abstract class AbstractFlagCommandHandler<T : FlagCommandPayload>(
     override val payloadType: KClass<T>,
-) : CommandMessageHandler<T, FlagState> {
+) : CommandHandler<T, FlagState> {
 
     protected val log = LoggerFactory.getLogger(javaClass)
 

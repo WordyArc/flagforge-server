@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.processor.rocksdb
+package dev.owlmajin.flagforge.server.processor.streams
 
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FlagState
@@ -8,26 +8,34 @@ import org.apache.kafka.common.serialization.Serdes
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-data class KafkaTopic<K, V>(
+data class TopicDescriptor<K, V>(
     val name: String,
     val keySerde: Serde<K>,
     val valueSerde: Serde<V>,
-)
+) {
+    companion object {
+        fun <K, V> of(
+            name: String,
+            keySerde: Serde<K>,
+            valueSerde: Serde<V>,
+        ) = TopicDescriptor(name, keySerde, valueSerde)
+    }
+}
 
 fun <K, V> topic(
     name: String,
     keySerde: Serde<K>,
     valueSerde: Serde<V>,
-): KafkaTopic<K, V> = KafkaTopic(name, keySerde, valueSerde)
+): TopicDescriptor<K, V> = TopicDescriptor(name, keySerde, valueSerde)
 
 data class Topics(
-    val commands: KafkaTopic<String, Message<*>>,
-    val events: KafkaTopic<String, Message<*>>,
-    val flagState: KafkaTopic<String, FlagState>,
-    val projectState: KafkaTopic<String, Any>,
-    val envState: KafkaTopic<String, Any>,
-    val segmentState: KafkaTopic<String, Any>,
-    val flagKeyIndex: KafkaTopic<String, String>,
+    val commands: TopicDescriptor<String, Message<*>>,
+    val events: TopicDescriptor<String, Message<*>>,
+    val flagState: TopicDescriptor<String, FlagState>,
+    val projectState: TopicDescriptor<String, Any>,
+    val envState: TopicDescriptor<String, Any>,
+    val segmentState: TopicDescriptor<String, Any>,
+    val flagKeyIndex: TopicDescriptor<String, String>,
 )
 
 @Configuration

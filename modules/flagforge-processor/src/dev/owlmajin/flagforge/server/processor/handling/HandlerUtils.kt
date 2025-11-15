@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.processor.handler
+package dev.owlmajin.flagforge.server.processor.handling
 
 import kotlin.reflect.KClass
 import kotlin.reflect.full.safeCast
