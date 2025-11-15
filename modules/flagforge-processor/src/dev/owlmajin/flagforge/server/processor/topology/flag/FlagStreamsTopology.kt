@@ -36,9 +36,9 @@ class FlagStreamsTopology(
     override fun configure(builder: StreamsBuilder) = with(builder) {
         val flagStateTable = materializeFlagState()
 
-        commandFlow(flagStateTable)
+        commandPipeline(flagStateTable)
 
-        val eventResults = eventFlow(flagStateTable)
+        val eventResults = eventPipeline(flagStateTable)
         persistFlagState(eventResults)
 
         rebuildFlagKeyIndex(eventResults)
@@ -60,7 +60,7 @@ class FlagStreamsTopology(
 
     // --- COMMAND PIPELINE ---
 
-    private fun StreamsBuilder.commandFlow(
+    private fun StreamsBuilder.commandPipeline(
         flagState: KTable<String, FlagState>,
     ) {
         val incomingCommands: KStream<String, Message<*>> =
@@ -99,7 +99,7 @@ class FlagStreamsTopology(
 
     // --- EVENT PIPELINE ---
 
-    private fun StreamsBuilder.eventFlow(flagState: KTable<String, FlagState>): KStream<String, EventResult> {
+    private fun StreamsBuilder.eventPipeline(flagState: KTable<String, FlagState>): KStream<String, EventResult> {
         val incomingEvents: KStream<String, Message<*>> =
             stream(topics.events)
                 .logIncomingEvents()
