@@ -30,7 +30,7 @@ class FlagEventTopology(
     override fun configure(builder: StreamsBuilder) = with(builder) {
         log.info { "Configuring FlagEventTopology" }
 
-        val flagState: KTable<String, FlagState> = stateTables.flagState(builder)
+        val flagState: KTable<String, FlagState> = stateTables.flagState
         val eventResults =
             stream(topics.events)
                 .logIncomingEvents()

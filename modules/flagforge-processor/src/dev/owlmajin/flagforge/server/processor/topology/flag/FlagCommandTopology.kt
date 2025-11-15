@@ -27,7 +27,7 @@ class FlagCommandTopology(
 
     override fun configure(builder: StreamsBuilder) = with(builder) {
         log.info { "Configuring FlagCommandTopology" }
-        val flagState: KTable<String, FlagState> = stateTables.flagState(builder)
+        val flagState: KTable<String, FlagState> = stateTables.flagState
 
         stream(topics.commands)
             .logIncomingCommands()
