@@ -1,6 +1,5 @@
 package dev.owlmajin.flagforge.server.processor.topology.flag
 
-import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.FlagCommandPayload
 import dev.owlmajin.flagforge.server.model.FlagState
 import dev.owlmajin.flagforge.server.model.Message
@@ -15,7 +14,6 @@ import dev.owlmajin.flagforge.server.processor.streams.withState
 import dev.owlmajin.flagforge.server.processor.topology.StreamsTopology
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.KTable
 import org.springframework.stereotype.Component
 
@@ -28,7 +26,7 @@ class FlagCommandTopology(
 
     override fun configure(builder: StreamsBuilder) = with(builder) {
         log.info { "Configuring FlagCommandTopology" }
-        val flagState = table(topics.flagState)
+        val flagState: KTable<String, FlagState> = table(topics.flagState)
 
         stream(topics.commands)
             .logIncomingCommands()
@@ -42,19 +40,19 @@ class FlagCommandTopology(
     }
 
 
-    private fun KStream<String, Message<*>>.toFlagCommands(): KStream<String, CommandMessage<FlagCommandPayload>> =
+    private fun FlagRawMessageStream.toFlagCommands(): FlagCommandStream =
         commandsOf<FlagCommandPayload>()
 
-    private fun KStream<String, CommandMessage<FlagCommandPayload>>.processFlagCommands(
+    private fun FlagCommandStream.processFlagCommands(
         flagState: KTable<String, FlagState>,
         messageProcessor: MessageProcessor,
-    ): KStream<String, CommandResult> =
+    ): FlagCommandResultStream =
         withState(flagState) { command, currentState -> messageProcessor.processCommand(command, currentState) }
 
-    private fun KStream<String, CommandResult>.skipIgnoredCommands(): KStream<String, CommandResult> =
+    private fun FlagCommandResultStream.skipIgnoredCommands(): FlagCommandResultStream =
         filter { _, result -> result !is CommandResult.Ignored }
 
-    private fun KStream<String, CommandResult>.toFlagEvents(): KStream<String, Message<*>> =
+    private fun FlagCommandResultStream.toFlagEvents(): FlagRawMessageStream =
         flatMapValues { result ->
             when (result) {
                 is CommandResult.Applied -> listOf(result.event as Message<*>)

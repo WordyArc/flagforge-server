@@ -1,9 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.topology.flag
 
-import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.FlagEventPayload
 import dev.owlmajin.flagforge.server.model.FlagState
-import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.EventResult
 import dev.owlmajin.flagforge.server.processor.streams.TopicDescriptor
@@ -17,7 +15,6 @@ import dev.owlmajin.flagforge.server.processor.topology.StreamsTopology
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.KTable
 import org.springframework.stereotype.Component
 
@@ -32,7 +29,7 @@ class FlagEventTopology(
     override fun configure(builder: StreamsBuilder) = with(builder) {
         log.info { "Configuring FlagEventTopology" }
 
-        val flagState = table(topics.flagState)
+        val flagState: KTable<String, FlagState> = table(topics.flagState)
         val eventResults =
             stream(topics.events)
                 .logIncomingEvents()
@@ -46,21 +43,21 @@ class FlagEventTopology(
         log.info { "FlagEventTopology configured: events -> flagState + flagKeyIndex" }
     }
 
-    private fun KStream<String, Message<*>>.toFlagEvents(): KStream<String, EventMessage<FlagEventPayload>> =
+    private fun FlagRawMessageStream.toFlagEvents(): FlagEventStream =
         eventsOf<FlagEventPayload>()
 
-    private fun KStream<String, EventMessage<FlagEventPayload>>.processFlagEvents(
+    private fun FlagEventStream.processFlagEvents(
         flagState: KTable<String, FlagState>,
         messageProcessor: MessageProcessor,
-    ): KStream<String, EventResult> =
+    ): FlagEventResultStream =
         withState(flagState) { event, currentState -> messageProcessor.processEvent(event, currentState) }
 
-    private fun KStream<String, EventResult>.skipIgnoredEvents(): KStream<String, EventResult> =
+    private fun FlagEventResultStream.skipIgnoredEvents(): FlagEventResultStream =
         filter { _, result -> result !is EventResult.Ignored }
 
 // --- sinks ---
 
-    private fun KStream<String, EventResult>.persistFlagState(flagStateTopic: TopicDescriptor<String, FlagState>) {
+    private fun FlagEventResultStream.persistFlagState(flagStateTopic: TopicDescriptor<String, FlagState>) {
         mapValues { result ->
             when (result) {
                 is EventResult.Applied<*> -> result.newState as? FlagState
@@ -69,7 +66,7 @@ class FlagEventTopology(
         }.nullablePublishTo(flagStateTopic)
     }
 
-    private fun KStream<String, EventResult>.rebuildFlagKeyIndex(indexTopic: TopicDescriptor<String, String>) {
+    private fun FlagEventResultStream.rebuildFlagKeyIndex(indexTopic: TopicDescriptor<String, String>) {
         flatMap { _, result ->
             when (result) {
                 is EventResult.Applied<*> -> {
