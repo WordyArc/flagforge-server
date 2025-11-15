@@ -23,6 +23,7 @@ spring-boot-kafka = "org.springframework.boot:spring-boot-kafka"
 spring-boot-starter-kafka = "org.springframework.boot:spring-boot-starter-kafka"
 
 spring-cloud-gateway-mvc = "org.springframework.cloud:spring-cloud-gateway-mvc"
+spring-boot-starter-webflux = "org.springframework.boot:spring-boot-starter-webflux"
 
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 
