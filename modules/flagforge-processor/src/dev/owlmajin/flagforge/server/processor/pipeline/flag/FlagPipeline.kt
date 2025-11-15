@@ -10,7 +10,6 @@ import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handler.CommandResult
 import dev.owlmajin.flagforge.server.processor.handler.EventResult
 import dev.owlmajin.flagforge.server.processor.pipeline.StreamsPipeline
-import dev.owlmajin.flagforge.server.processor.pipeline.chain
 import dev.owlmajin.flagforge.server.processor.rocksdb.Topics
 import dev.owlmajin.flagforge.server.processor.rocksdb.commandsOf
 import dev.owlmajin.flagforge.server.processor.rocksdb.eventsOf
@@ -38,23 +37,16 @@ class FlagPipeline(
         val flagState = builder.initStateTables()
 
         builder.stream(topics.commands)
-            .chain("flag-commands") {
-                step("log-incoming-commands", ::logIncomingCommands)
-                    .step("extract-flag-commands", ::extractFlagCommands)
-                    .step("handle-flag-commands") { handleFlagCommands(it, flagState) }
-                    .step("drop-ignored-commands", ::dropIgnoredCommands)
-                    .sideEffect("publish-flag-events", ::publishFlagEvents)
-                    .build()
-            }
+            .logIncomingCommands()
+            .extractFlagCommands()
+            .handleFlagCommands(flagState)
+            .dropIgnoredCommands()
+            .also { it.publishFlagEvents() }
 
         val eventResults: KStream<String, EventResult> =
             builder.stream(topics.events)
-                .chain("flag-events") {
-                    step("log-incoming-events", ::logIncomingEvents)
-                        .step("handle-flag-events") { handleFlagEvents(it, flagState) }
-                        .build()
-                }
-
+                .logIncomingEvents()
+                .handleFlagEvents(flagState)
 
         writeFlagState(eventResults)
         buildFlagIndex(eventResults)
@@ -73,75 +65,34 @@ class FlagPipeline(
 
     // --- COMMAND PIPELINE ---
 
-    private fun extractFlagCommands(commands: KStream<String, Message<*>>): KStream<String, CommandMessage<FlagCommandPayload>> =
-        commands.commandsOf<FlagCommandPayload>()
-            .peek { key, command ->
-                klog.info {
-                    "Processing flag command: key=$key, flagId=${command.payload.flagId}, " +
-                            "payloadType=${command.payload::class.simpleName}, commandId=${command.header.id}"
-                }
-            }
+    private fun KStream<String, Message<*>>.extractFlagCommands(): KStream<String, CommandMessage<FlagCommandPayload>> =
+        commandsOf<FlagCommandPayload>()
 
-    private fun handleFlagCommands(
-        flagCommands: KStream<String, CommandMessage<FlagCommandPayload>>,
-        flagState: KTable<String, FlagState>,
-    ): KStream<String, CommandResult> =
-        flagCommands.withState(flagState) { command, currentState ->
-                klog.info { "Flag command with state: flagId=${command.payload.flagId}, " +
-                            "payloadType=${command.payload::class.simpleName}, currentVersion=${currentState?.version}" }
-                messageProcessor.processCommand(command, currentState)
-            }
-            .peek { key, result ->
-                klog.debug {
-                    when (result) {
-                        is CommandResult.Applied -> "Command applied: key=$key, eventPayload=${result.event?.payload?.let { it::class.simpleName }}"
-                        is CommandResult.Rejected -> "Command rejected: key=$key, payload=${result.event.payload}"
-                        CommandResult.Ignored -> "Command ignored: key=$key"
-                    }
-                }
-            }
+    private fun KStream<String, CommandMessage<FlagCommandPayload>>.handleFlagCommands(flagState: KTable<String, FlagState>): KStream<String, CommandResult> =
+        withState(flagState) { command, currentState -> messageProcessor.processCommand(command, currentState) }
 
-    private fun publishFlagEvents(commandResults: KStream<String, CommandResult>) {
+    private fun KStream<String, CommandResult>.dropIgnoredCommands(): KStream<String, CommandResult> =
+        filter { _, result -> result !is CommandResult.Ignored }
+
+    private fun KStream<String, CommandResult>.publishFlagEvents() {
         val eventMessageSerde = topics.events.valueSerde
-
-        commandResults.flatMapValues { result ->
-                when (result) {
-                    is CommandResult.Applied -> listOf(result.event)
-                    is CommandResult.Rejected -> listOf(result.event)
-                    CommandResult.Ignored -> emptyList()
-                }
+        flatMapValues<Message<*>> { result ->
+            when (result) {
+                is CommandResult.Applied -> listOf(result.event as Message<*>)
+                is CommandResult.Rejected -> listOf(result.event as Message<*>)
+                CommandResult.Ignored -> emptyList()
             }
-            .peek { key, event ->
-                klog.debug { "Produce flag-event. key=$key, payloadType=${event.payload::class.simpleName}" }
-            } into topics.events.copy(valueSerde = eventMessageSerde)
+        } into topics.events.copy(valueSerde = eventMessageSerde)
     }
 
     // --- EVENT PIPELINE ---
 
-    private fun handleFlagEvents(
-        events: KStream<String, Message<*>>,
+    private fun KStream<String, Message<*>>.handleFlagEvents(
         flagState: KTable<String, FlagState>,
     ): KStream<String, EventResult> {
-        val flagEvents: KStream<String, EventMessage<FlagEventPayload>> =
-            events.eventsOf<FlagEventPayload>()
+        val flagEvents: KStream<String, EventMessage<FlagEventPayload>> = eventsOf<FlagEventPayload>()
 
-        return flagEvents.withState(flagState) { event, currentState ->
-                klog.info {
-                    "Apply flag event: flagId=${event.payload.flagId}, " +
-                            "payloadType=${event.payload::class.simpleName}, currentVersion=${currentState?.version}"
-                }
-                messageProcessor.processEvent(event, currentState)
-            }
-            .peek { key, result ->
-                klog.debug {
-                    when (result) {
-                        is EventResult.Applied<*> ->
-                            "Event applied: key=$key, isTombstone=${result.newState == null}"
-                        EventResult.Ignored ->
-                            "Event ignored: key=$key"
-                    }
-                }
-            }
+        return flagEvents.withState(flagState) { event, currentState -> messageProcessor.processEvent(event, currentState) }
             .filter { _, result -> result !is EventResult.Ignored }
     }
 
@@ -149,14 +100,11 @@ class FlagPipeline(
 
     private fun writeFlagState(eventResults: KStream<String, EventResult>) {
         eventResults
-            .mapValues {
-                when (it) {
-                    is EventResult.Applied<*> -> it.newState as? FlagState
+            .mapValues { result ->
+                when (result) {
+                    is EventResult.Applied<*> -> result.newState as? FlagState
                     EventResult.Ignored -> null
                 }
-            }
-            .peek { key, aggregate ->
-                klog.debug { "Produce flag-state. key=$key, isTombstone=${aggregate == null}" }
             } intoNullable topics.flagState
     }
 
@@ -175,27 +123,16 @@ class FlagPipeline(
                                     after.id,
                                 ),
                             )
-
                             before != null -> listOf(
                                 KeyValue(
                                     "${before.projectId}|${before.environmentKey}|${before.key}",
                                     null,
                                 ),
                             )
-
                             else -> emptyList()
                         }
                     }
                     EventResult.Ignored -> emptyList()
-                }
-            }
-            .peek { key, value ->
-                klog.debug {
-                    if (value == null) {
-                        "Tombstone flag-key-index. key=$key"
-                    } else {
-                        "Produce flag-key-index. key=$key, flagId=$value"
-                    }
                 }
             } intoNullable topics.flagKeyIndex
     }

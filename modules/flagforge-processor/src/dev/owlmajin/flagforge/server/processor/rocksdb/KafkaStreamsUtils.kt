@@ -22,7 +22,3 @@ infix fun <K, V> KStream<K, V?>.intoNullable(topic: KafkaTopic<K, V>) {
     val serde = topic.valueSerde as Serde<V?>
     to(topic.name, Produced.with(topic.keySerde, serde))
 }
-
-infix fun <K, V> KTable<K, V>.into(topic: KafkaTopic<K, V>) {
-    toStream().to(topic.name, Produced.with(topic.keySerde, topic.valueSerde))
-}

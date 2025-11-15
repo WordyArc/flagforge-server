@@ -18,7 +18,5 @@ class TopologyConfiguration(private val pipelines: List<StreamsPipeline>) {
         klog.info { "Kafka Streams topology built with ${pipelines.size} pipelines" }
     }
 
-
-
 }
 
