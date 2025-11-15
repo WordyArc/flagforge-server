@@ -24,11 +24,14 @@ class MessageProcessor(
     eventHandlers: List<EventMessageHandler<*, *>>,
 ) {
     private val klog = KotlinLogging.logger { javaClass }
+
     private val commandRoutes: List<CommandRoute> =
-        commandHandlers.map { it.asRoute() }.also { ensureUnique(it.map(CommandRoute::primaryType)) }
+        commandHandlers.map { it.asRoute() }
+            .also { ensureUnique(it.map(CommandRoute::primaryType)) }
 
     private val eventRoutes: List<EventRoute> =
-        eventHandlers.map { it.asRoute() }.also { ensureUnique(it.map(EventRoute::primaryType)) }
+        eventHandlers.map { it.asRoute() }
+            .also { ensureUnique(it.map(EventRoute::primaryType)) }
 
     fun processCommand(
         command: CommandMessage<out CommandPayload>,

@@ -8,6 +8,18 @@ import org.apache.kafka.common.serialization.Serdes
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+data class KafkaTopic<K, V>(
+    val name: String,
+    val keySerde: Serde<K>,
+    val valueSerde: Serde<V>,
+)
+
+fun <K, V> topic(
+    name: String,
+    keySerde: Serde<K>,
+    valueSerde: Serde<V>,
+): KafkaTopic<K, V> = KafkaTopic(name, keySerde, valueSerde)
+
 data class Topics(
     val commands: KafkaTopic<String, Message<*>>,
     val events: KafkaTopic<String, Message<*>>,
@@ -69,3 +81,4 @@ class TopicsConfiguration(
         )
     }
 }
+

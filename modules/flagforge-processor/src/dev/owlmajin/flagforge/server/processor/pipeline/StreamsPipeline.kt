@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.pipeline
 
-import dev.owlmajin.flagforge.server.processor.rocksdb.Topology
+import org.apache.kafka.streams.StreamsBuilder
 
 interface StreamsPipeline {
-    fun build(topology: Topology)
+    fun build(builder: StreamsBuilder)
 }
