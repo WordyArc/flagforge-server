@@ -13,11 +13,11 @@ fun <K, V> StreamsBuilder.stream(topic: KafkaTopic<K, V>): KStream<K, V> =
 fun <K, V> StreamsBuilder.table(topic: KafkaTopic<K, V>): KTable<K, V> =
     table(topic.name, Consumed.with(topic.keySerde, topic.valueSerde))
 
-infix fun <K, V> KStream<K, V>.into(topic: KafkaTopic<K, V>) {
+infix fun <K, V> KStream<K, V>.publishTo(topic: KafkaTopic<K, V>) {
     to(topic.name, Produced.with(topic.keySerde, topic.valueSerde))
 }
 
-infix fun <K, V> KStream<K, V?>.intoNullable(topic: KafkaTopic<K, V>) {
+infix fun <K, V> KStream<K, V?>.nullablePublishTo(topic: KafkaTopic<K, V>) {
     @Suppress("UNCHECKED_CAST")
     val serde = topic.valueSerde as Serde<V?>
     to(topic.name, Produced.with(topic.keySerde, serde))

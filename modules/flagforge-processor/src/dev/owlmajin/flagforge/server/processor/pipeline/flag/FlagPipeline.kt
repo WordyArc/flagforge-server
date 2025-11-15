@@ -13,8 +13,8 @@ import dev.owlmajin.flagforge.server.processor.pipeline.StreamsPipeline
 import dev.owlmajin.flagforge.server.processor.rocksdb.Topics
 import dev.owlmajin.flagforge.server.processor.rocksdb.commandsOf
 import dev.owlmajin.flagforge.server.processor.rocksdb.eventsOf
-import dev.owlmajin.flagforge.server.processor.rocksdb.into
-import dev.owlmajin.flagforge.server.processor.rocksdb.intoNullable
+import dev.owlmajin.flagforge.server.processor.rocksdb.publishTo
+import dev.owlmajin.flagforge.server.processor.rocksdb.nullablePublishTo
 import dev.owlmajin.flagforge.server.processor.rocksdb.stream
 import dev.owlmajin.flagforge.server.processor.rocksdb.table
 import dev.owlmajin.flagforge.server.processor.rocksdb.withState
@@ -82,7 +82,7 @@ class FlagPipeline(
                 is CommandResult.Rejected -> listOf(result.event as Message<*>)
                 CommandResult.Ignored -> emptyList()
             }
-        } into topics.events.copy(valueSerde = eventMessageSerde)
+        } publishTo topics.events.copy(valueSerde = eventMessageSerde)
     }
 
     // --- EVENT PIPELINE ---
@@ -105,7 +105,7 @@ class FlagPipeline(
                     is EventResult.Applied<*> -> result.newState as? FlagState
                     EventResult.Ignored -> null
                 }
-            } intoNullable topics.flagState
+            } nullablePublishTo topics.flagState
     }
 
     private fun buildFlagIndex(eventResults: KStream<String, EventResult>) {
@@ -134,6 +134,6 @@ class FlagPipeline(
                     }
                     EventResult.Ignored -> emptyList()
                 }
-            } intoNullable topics.flagKeyIndex
+            } nullablePublishTo topics.flagKeyIndex
     }
 }
