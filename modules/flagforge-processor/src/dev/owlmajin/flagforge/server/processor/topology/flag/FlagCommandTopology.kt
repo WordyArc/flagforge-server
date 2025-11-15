@@ -5,30 +5,21 @@ import dev.owlmajin.flagforge.server.model.FlagState
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.CommandResult
-import dev.owlmajin.flagforge.server.processor.streams.Topics
 import dev.owlmajin.flagforge.server.processor.streams.commandsOf
 import dev.owlmajin.flagforge.server.processor.streams.publishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
 import dev.owlmajin.flagforge.server.processor.streams.withState
-import dev.owlmajin.flagforge.server.processor.topology.StateTables
-import dev.owlmajin.flagforge.server.processor.topology.StreamsTopology
+import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.kstream.KTable
 import org.springframework.stereotype.Component
 
 @Component
-class FlagCommandTopology(
-    private val topics: Topics,
-    private val messageProcessor: MessageProcessor,
-    private val stateTables: StateTables,
-): StreamsTopology {
+class FlagCommandTopology : AbstractTopology() {
     private val log = KotlinLogging.logger { javaClass }
 
-    override fun configure(builder: StreamsBuilder) = with(builder) {
+    override fun configure() = with(builder) {
         log.info { "Configuring FlagCommandTopology" }
-        val flagState: KTable<String, FlagState> = stateTables.flagState
-
         stream(topics.commands)
             .logIncomingCommands()
             .toFlagCommands()

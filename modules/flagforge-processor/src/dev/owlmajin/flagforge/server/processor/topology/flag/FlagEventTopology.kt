@@ -5,32 +5,24 @@ import dev.owlmajin.flagforge.server.model.FlagState
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.EventResult
 import dev.owlmajin.flagforge.server.processor.streams.TopicDescriptor
-import dev.owlmajin.flagforge.server.processor.streams.Topics
 import dev.owlmajin.flagforge.server.processor.streams.eventsOf
 import dev.owlmajin.flagforge.server.processor.streams.nullablePublishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
 import dev.owlmajin.flagforge.server.processor.streams.withState
-import dev.owlmajin.flagforge.server.processor.topology.StateTables
-import dev.owlmajin.flagforge.server.processor.topology.StreamsTopology
+import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.KeyValue
-import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.kstream.KTable
 import org.springframework.stereotype.Component
 
 @Component
-class FlagEventTopology(
-    private val topics: Topics,
-    private val messageProcessor: MessageProcessor,
-    private val stateTables: StateTables,
-) : StreamsTopology {
+class FlagEventTopology : AbstractTopology() {
 
     private val log = KotlinLogging.logger { javaClass }
 
-    override fun configure(builder: StreamsBuilder) = with(builder) {
+    override fun configure() = with(builder) {
         log.info { "Configuring FlagEventTopology" }
 
-        val flagState: KTable<String, FlagState> = stateTables.flagState
         val eventResults =
             stream(topics.events)
                 .logIncomingEvents()
@@ -56,7 +48,7 @@ class FlagEventTopology(
     private fun FlagEventResultStream.skipIgnoredEvents(): FlagEventResultStream =
         filter { _, result -> result !is EventResult.Ignored }
 
-// --- sinks ---
+    // --- sinks ---
 
     private fun FlagEventResultStream.persistFlagState(flagStateTopic: TopicDescriptor<String, FlagState>) {
         mapValues { result ->
