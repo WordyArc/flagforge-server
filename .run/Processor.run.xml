@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Processor" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="processor" />
+    <option name="ALTERNATIVE_JRE_PATH" value="21" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <module name="bootstrap.common" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="dev.owlmajin.flagforge.server.bootstrap.ApplicationKt" />
+    <option name="VM_PARAMETERS" value="-Dserver.port=8183" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

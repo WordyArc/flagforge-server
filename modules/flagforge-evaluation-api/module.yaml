@@ -6,6 +6,13 @@ apply:
 
 dependencies:
   - ../flagforge-model
+  - ../flagforge-common
+  - ../flagforge-common-kafka
 
+  - $libs.kotlinx.coroutines.reactor
   - $libs.spring.context
   - $libs.spring.boot.starter.webflux
+  - $libs.kafka.streams
+  - $libs.spring.boot.kafka
+  - $libs.jackson.databind
+  - $libs.jackson.module.kotlin
