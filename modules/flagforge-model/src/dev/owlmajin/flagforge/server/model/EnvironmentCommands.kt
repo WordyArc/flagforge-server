@@ -24,8 +24,7 @@ fun <T> T.toEnvironmentCommandMessage(
     correlationId: String? = null,
     timestamp: Instant = Instant.now(),
     messageId: String = Uuid.random().toString(),
-): CommandMessage<T>
-    where T : EnvironmentCommandPayload = commandMessage(
+): CommandMessage<T> where T : EnvironmentCommandPayload = commandMessage(
     aggregateId = environmentId,
     aggregateType = AggregateType.ENVIRONMENT,
     actorId = actorId,

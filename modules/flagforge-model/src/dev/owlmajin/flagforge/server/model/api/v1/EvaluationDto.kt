@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.model.api.v1
 
 data class EvaluationDto(
-    val projectKey: String,
+    val projectId: String,
     val environment: String,
     val flagKey: String,
     val uid: String,
@@ -9,7 +9,7 @@ data class EvaluationDto(
 )
 
 data class EvaluationResult(
-    val projectKey: String,
+    val projectId: String,
     val environment: String,
     val flagKey: String,
     val enabled: Boolean,
