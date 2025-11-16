@@ -1,18 +1,24 @@
 package dev.owlmajin.flagforge.server.evaluation.api.config
 
+import dev.owlmajin.flagforge.server.common.CommonConfiguration
+import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguration
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.evaluation.api.streams.StreamsSerdes
 import dev.owlmajin.flagforge.server.model.FlagState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration
 import org.springframework.kafka.config.KafkaStreamsConfiguration
+import org.springframework.kafka.config.StreamsBuilderFactoryBean
+import org.springframework.kafka.streams.KafkaStreamsInteractiveQueryService
 import tools.jackson.core.StreamReadFeature
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
@@ -22,6 +28,11 @@ import tools.jackson.module.kotlin.KotlinModule
 import tools.jackson.module.kotlin.jsonMapper
 import tools.jackson.module.kotlin.kotlinModule
 
+
+@Import(
+    CommonConfiguration::class,
+    CommonKafkaConfiguration::class,
+)
 @Profile("evaluation-api")
 @Configuration
 @ComponentScan("dev.owlmajin.flagforge.server.evaluation.api")
@@ -36,13 +47,17 @@ class EvaluationApiConfiguration {
     }
 
     @Bean
-    fun jacksonBuilder(kotlinModule: KotlinModule): ObjectMapper =
+    fun jsonMapper(kotlinModule: KotlinModule): ObjectMapper =
         jsonMapper {
             addModule(kotlinModule)
             enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
             enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
         }
+
+    @Bean
+    fun interactiveQueryService(streamsBuilderFactoryBean: StreamsBuilderFactoryBean) =
+        KafkaStreamsInteractiveQueryService(streamsBuilderFactoryBean)
 
     @Bean(name = [KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME])
     fun kafkaStreamsConfig(persistenceProperties: PersistenceProperties): KafkaStreamsConfiguration {
