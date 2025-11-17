@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.evaluation.api.repository
 
-import dev.owlmajin.flagforge.server.evaluation.api.FLAG_INDEX_STORE_NAME
-import dev.owlmajin.flagforge.server.evaluation.api.FLAG_STATE_STORE_NAME
+import dev.owlmajin.flagforge.server.model.FLAG_INDEX_STORE_NAME
+import dev.owlmajin.flagforge.server.model.FLAG_STATE_STORE_NAME
 import dev.owlmajin.flagforge.server.model.FlagState
 import org.apache.kafka.streams.state.QueryableStoreTypes
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
@@ -19,7 +19,7 @@ class FlagRepository(private val interactiveQueryService: KafkaStreamsInteractiv
 
     private val flagStore: ReadOnlyKeyValueStore<String, FlagState>
         get() = interactiveQueryService.retrieveQueryableStore(
-            FLAG_INDEX_STORE_NAME,
+            FLAG_STATE_STORE_NAME,
             QueryableStoreTypes.keyValueStore(),
         )
 
