@@ -72,7 +72,7 @@ class CreateFlagHandler : AbstractFlagCommandHandler<CreateFlagCommand>(CreateFl
 
         val code = when (payload.type) {
             FlagType.BOOLEAN -> validateBooleanRules(payload)
-            FlagType.PERCENTAGE -> validatePercentageRules(payload)
+            FlagType.PERCENTAGE -> TODO("Percentage flag not supported yet.")
             FlagType.MULTIVARIANT -> TODO("Multivariant flag not implemented fow now.")
         }
 

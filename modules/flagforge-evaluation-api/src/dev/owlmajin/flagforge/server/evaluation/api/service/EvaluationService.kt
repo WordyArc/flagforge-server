@@ -2,6 +2,7 @@ package dev.owlmajin.flagforge.server.evaluation.api.service
 
 import dev.owlmajin.flagforge.server.evaluation.api.repository.FlagRepository
 import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.FlagType
 import dev.owlmajin.flagforge.server.model.RuleAction
 import dev.owlmajin.flagforge.server.model.api.v1.EvaluationDto
 import dev.owlmajin.flagforge.server.model.api.v1.EvaluationResult
@@ -89,23 +90,8 @@ class EvaluationServiceImpl(private val flagRepository: FlagRepository) : Evalua
                     )
                 }
 
-                is RuleAction.PercentageAction -> {
-                    val enabled = bucket < action.truePercent
-                    return LocalEval(
-                        enabled = enabled,
-                        variant = flag.defaultVariant,
-                        reason = "RULE_PERCENTAGE:${rule.id}:bucket=$bucket",
-                    )
-                }
-
-                is RuleAction.MultiVariantAction -> {
-                    val variant = chooseVariant(bucket, action.variants)
-                    return LocalEval(
-                        enabled = flag.enabled,
-                        variant = variant,
-                        reason = "RULE_MULTIVARIANT:${rule.id}:bucket=$bucket",
-                    )
-                }
+                is RuleAction.PercentageAction -> continue
+                is RuleAction.MultiVariantAction -> continue
             }
         }
 
