@@ -31,7 +31,7 @@ sealed interface CommandPayload : MessagePayload {
     val expectedVersion: Long?
 }
 
-sealed interface EventPayload : MessagePayload {
+interface EventPayload : MessagePayload {
     val version: Long
     val commandId: String
 }
