@@ -1,0 +1,12 @@
+### Evaluate flag
+@projectId = c259ffc6-c58e-4452-922b-1e66d6f9a701
+POST http://localhost:8185/api/v1/eval
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "environment": "dev",
+  "flagKey": "new_backend",
+  "uid": "user-123",
+  "attributes": {}
+}
