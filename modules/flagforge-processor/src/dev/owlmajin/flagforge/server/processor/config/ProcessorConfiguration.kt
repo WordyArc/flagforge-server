@@ -12,8 +12,10 @@ import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
+import org.springframework.kafka.annotation.EnableKafkaStreams
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration
 import org.springframework.kafka.config.KafkaStreamsConfiguration
 import tools.jackson.databind.json.JsonMapper
@@ -24,6 +26,7 @@ import tools.jackson.module.kotlin.kotlinModule
 @Profile("processor")
 @Import(CommonKafkaConfiguration::class)
 @Configuration
+@EnableKafkaStreams
 @ComponentScan(basePackages = ["dev.owlmajin.flagforge.server.processor"])
 class ProcessorConfiguration() {
 
@@ -38,6 +41,7 @@ class ProcessorConfiguration() {
         addModule(createKotlinModule)
     }
 
+    @DependsOn("topicInitializer")
     @Bean(name = [KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME])
     fun kafkaStreamsConfig(persistenceProperties: PersistenceProperties): KafkaStreamsConfiguration {
         val kafka: KafkaProperties = persistenceProperties.kafka

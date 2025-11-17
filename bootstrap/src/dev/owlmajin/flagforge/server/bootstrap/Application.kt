@@ -7,14 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.cloud.gateway.mvc.config.ProxyResponseAutoConfiguration
 import org.springframework.context.annotation.Import
-import org.springframework.kafka.annotation.EnableKafkaStreams
 
 @Import(
     ControlApiConfiguration::class,
     ProcessorConfiguration::class,
     EvaluationApiConfiguration::class,
 )
-@EnableKafkaStreams
 @SpringBootApplication(
     //scanBasePackages = ["dev.owlmajin.flagforge.server"],
     exclude = [

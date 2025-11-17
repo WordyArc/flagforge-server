@@ -15,7 +15,6 @@ dependencies:
   #  - org.springframework:spring-context
   #  - org.yaml:snakeyaml
   - $libs.spring.boot.starter.web
-  - $libs.kafka.streams
 
   # только типы для exclude
   - $libs.spring.cloud.gateway.mvc

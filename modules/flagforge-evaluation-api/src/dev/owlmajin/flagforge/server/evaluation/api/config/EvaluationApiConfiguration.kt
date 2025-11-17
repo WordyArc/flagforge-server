@@ -8,13 +8,14 @@ import dev.owlmajin.flagforge.server.model.FlagState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.StreamsConfig
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
+import org.springframework.kafka.annotation.EnableKafkaStreams
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration
 import org.springframework.kafka.config.KafkaStreamsConfiguration
 import org.springframework.kafka.config.StreamsBuilderFactoryBean
@@ -36,6 +37,7 @@ import tools.jackson.module.kotlin.kotlinModule
 @Profile("evaluation-api")
 @Configuration
 @ComponentScan("dev.owlmajin.flagforge.server.evaluation.api")
+@EnableKafkaStreams
 class EvaluationApiConfiguration {
 
 
@@ -59,6 +61,7 @@ class EvaluationApiConfiguration {
     fun interactiveQueryService(streamsBuilderFactoryBean: StreamsBuilderFactoryBean) =
         KafkaStreamsInteractiveQueryService(streamsBuilderFactoryBean)
 
+    @DependsOn("topicInitializer")
     @Bean(name = [KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME])
     fun kafkaStreamsConfig(persistenceProperties: PersistenceProperties): KafkaStreamsConfiguration {
         val kafka: KafkaProperties = persistenceProperties.kafka
