@@ -1,6 +1,8 @@
 package dev.owlmajin.flagforge.server.processor.topology
 
+import dev.owlmajin.flagforge.server.model.environment.EnvironmentState
 import dev.owlmajin.flagforge.server.model.flag.FlagState
+import dev.owlmajin.flagforge.server.model.project.ProjectState
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.streams.Topics
 import org.apache.kafka.streams.StreamsBuilder
@@ -24,10 +26,10 @@ abstract class AbstractTopology : StreamsTopology {
     protected val flagState: KTable<String, FlagState>
         get() = stateTables.flagState
 
-    protected val projectState: KTable<String, *>
+    protected val projectState: KTable<String, ProjectState>
         get() = stateTables.projectState
 
-    protected val envState: KTable<String, *>
+    protected val envState: KTable<String, EnvironmentState>
         get() = stateTables.envState
 
     protected val segmentState: KTable<String, *>

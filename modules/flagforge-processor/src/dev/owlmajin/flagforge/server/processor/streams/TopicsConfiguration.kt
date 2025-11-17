@@ -4,6 +4,8 @@ import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FLAG_INDEX_TOPIC_NAME
 import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
+import dev.owlmajin.flagforge.server.model.environment.EnvironmentState
+import dev.owlmajin.flagforge.server.model.project.ProjectState
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.springframework.context.annotation.Bean
@@ -33,8 +35,8 @@ data class Topics(
     val commands: TopicDescriptor<String, Message<*>>,
     val events: TopicDescriptor<String, Message<*>>,
     val flagState: TopicDescriptor<String, FlagState>,
-    val projectState: TopicDescriptor<String, Any>,
-    val envState: TopicDescriptor<String, Any>,
+    val projectState: TopicDescriptor<String, ProjectState>,
+    val envState: TopicDescriptor<String, EnvironmentState>,
     val segmentState: TopicDescriptor<String, Any>,
     val flagKeyIndex: TopicDescriptor<String, String>,
 )
@@ -44,6 +46,8 @@ class TopicsConfiguration(
     private val persistenceProperties: PersistenceProperties,
     private val messageSerde: Serde<Message<*>>,
     private val flagStateSerde: Serde<FlagState>,
+    private val projectStateSerde: Serde<ProjectState>,
+    private val environmentStateSerde: Serde<EnvironmentState>,
     private val anySerde: Serde<Any>,
 ) {
 
@@ -70,12 +74,12 @@ class TopicsConfiguration(
             projectState = topic(
                 name = persistenceProperties.projectState.effectiveName,
                 keySerde = stringSerde,
-                valueSerde = anySerde,
+                valueSerde = projectStateSerde,
             ),
             envState = topic(
                 name = persistenceProperties.envState.effectiveName,
                 keySerde = stringSerde,
-                valueSerde = anySerde,
+                valueSerde = environmentStateSerde,
             ),
             segmentState = topic(
                 name = persistenceProperties.segmentState.effectiveName,

@@ -4,6 +4,8 @@ import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguratio
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
+import dev.owlmajin.flagforge.server.model.environment.EnvironmentState
+import dev.owlmajin.flagforge.server.model.project.ProjectState
 import dev.owlmajin.flagforge.server.processor.serde.StreamsSerdes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Serde
@@ -66,6 +68,14 @@ class ProcessorConfiguration() {
     @Bean
     fun flagStateSerde(jsonMapper: JsonMapper): Serde<FlagState> =
         StreamsSerdes.json<FlagState>(jsonMapper)
+
+    @Bean
+    fun projectStateSerde(jsonMapper: JsonMapper): Serde<ProjectState> =
+        StreamsSerdes.json(jsonMapper)
+
+    @Bean
+    fun environmentStateSerde(jsonMapper: JsonMapper): Serde<EnvironmentState> =
+        StreamsSerdes.json(jsonMapper)
 
     @Bean
     fun anySerde(jsonMapper: JsonMapper): Serde<Any> =
