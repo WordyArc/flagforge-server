@@ -1,8 +1,8 @@
 package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
-import dev.owlmajin.flagforge.server.model.CreateProjectCommand
-import dev.owlmajin.flagforge.server.model.toProjectCommandMessage
+import dev.owlmajin.flagforge.server.model.project.CreateProjectCommand
+import dev.owlmajin.flagforge.server.model.project.toProjectCommandMessage
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateProjectRequest
 import dev.owlmajin.flagforge.server.model.api.v1.projectResourceName

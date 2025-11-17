@@ -1,8 +1,8 @@
 package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
-import dev.owlmajin.flagforge.server.model.CreateFlagCommand
-import dev.owlmajin.flagforge.server.model.toFlagCommandMessage
+import dev.owlmajin.flagforge.server.model.flag.CreateFlagCommand
+import dev.owlmajin.flagforge.server.model.flag.toFlagCommandMessage
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
 import dev.owlmajin.flagforge.server.model.api.v1.flagResourceName

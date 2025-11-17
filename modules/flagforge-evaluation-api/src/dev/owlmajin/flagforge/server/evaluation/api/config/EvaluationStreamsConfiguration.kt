@@ -4,7 +4,7 @@ import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.FLAG_INDEX_STORE_NAME
 import dev.owlmajin.flagforge.server.model.FLAG_INDEX_TOPIC_NAME
 import dev.owlmajin.flagforge.server.model.FLAG_STATE_STORE_NAME
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.utils.Bytes

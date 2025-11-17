@@ -1,6 +1,10 @@
-package dev.owlmajin.flagforge.server.model
+package dev.owlmajin.flagforge.server.model.project
 
 import com.fasterxml.jackson.annotation.JsonTypeName
+import dev.owlmajin.flagforge.server.model.AggregateType
+import dev.owlmajin.flagforge.server.model.CommandMessage
+import dev.owlmajin.flagforge.server.model.CommandPayload
+import dev.owlmajin.flagforge.server.model.commandMessage
 import java.time.Instant
 import kotlin.uuid.Uuid
 

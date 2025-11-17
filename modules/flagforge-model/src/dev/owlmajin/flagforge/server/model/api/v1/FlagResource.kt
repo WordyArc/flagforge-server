@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.model.api.v1
 
-import dev.owlmajin.flagforge.server.model.FlagRule
-import dev.owlmajin.flagforge.server.model.FlagType
+import dev.owlmajin.flagforge.server.model.flag.FlagRule
+import dev.owlmajin.flagforge.server.model.flag.FlagType
 import java.time.Instant
 
 data class FlagResource(

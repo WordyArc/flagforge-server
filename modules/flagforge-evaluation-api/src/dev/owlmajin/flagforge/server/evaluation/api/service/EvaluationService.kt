@@ -1,9 +1,8 @@
 package dev.owlmajin.flagforge.server.evaluation.api.service
 
 import dev.owlmajin.flagforge.server.evaluation.api.repository.FlagRepository
-import dev.owlmajin.flagforge.server.model.FlagState
-import dev.owlmajin.flagforge.server.model.FlagType
-import dev.owlmajin.flagforge.server.model.RuleAction
+import dev.owlmajin.flagforge.server.model.flag.FlagState
+import dev.owlmajin.flagforge.server.model.flag.RuleAction
 import dev.owlmajin.flagforge.server.model.api.v1.EvaluationDto
 import dev.owlmajin.flagforge.server.model.api.v1.EvaluationResult
 import io.github.oshai.kotlinlogging.KotlinLogging

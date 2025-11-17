@@ -1,16 +1,16 @@
 package dev.owlmajin.flagforge.server.processor.handling
 
 import dev.owlmajin.flagforge.server.model.CommandMessage
-import dev.owlmajin.flagforge.server.model.CommandRejectedEvent
-import dev.owlmajin.flagforge.server.model.CreateFlagCommand
+import dev.owlmajin.flagforge.server.model.flag.CommandRejectedEvent
+import dev.owlmajin.flagforge.server.model.flag.CreateFlagCommand
 import dev.owlmajin.flagforge.server.model.EventMessage
-import dev.owlmajin.flagforge.server.model.FlagCommandPayload
-import dev.owlmajin.flagforge.server.model.FlagCreatedEvent
-import dev.owlmajin.flagforge.server.model.FlagEventPayload
-import dev.owlmajin.flagforge.server.model.FlagState
-import dev.owlmajin.flagforge.server.model.FlagType
-import dev.owlmajin.flagforge.server.model.RuleAction
-import dev.owlmajin.flagforge.server.model.toFlagEventMessage
+import dev.owlmajin.flagforge.server.model.flag.FlagCommandPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagCreatedEvent
+import dev.owlmajin.flagforge.server.model.flag.FlagEventPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagType
+import dev.owlmajin.flagforge.server.model.flag.RuleAction
+import dev.owlmajin.flagforge.server.model.flag.toFlagEventMessage
 import java.time.Instant
 import kotlin.reflect.KClass
 import org.slf4j.LoggerFactory

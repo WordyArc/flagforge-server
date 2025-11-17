@@ -27,7 +27,7 @@ data class Message<T : MessagePayload>(
 )
 sealed interface MessagePayload
 
-sealed interface CommandPayload : MessagePayload {
+interface CommandPayload : MessagePayload {
     val expectedVersion: Long?
 }
 

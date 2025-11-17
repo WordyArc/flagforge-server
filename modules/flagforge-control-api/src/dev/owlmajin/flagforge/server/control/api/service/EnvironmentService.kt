@@ -1,8 +1,8 @@
 package dev.owlmajin.flagforge.server.control.api.service
 
 import dev.owlmajin.flagforge.server.common.IdGenerator
-import dev.owlmajin.flagforge.server.model.CreateEnvironmentCommand
-import dev.owlmajin.flagforge.server.model.toEnvironmentCommandMessage
+import dev.owlmajin.flagforge.server.model.environment.CreateEnvironmentCommand
+import dev.owlmajin.flagforge.server.model.environment.toEnvironmentCommandMessage
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateEnvironmentRequest
 import dev.owlmajin.flagforge.server.model.api.v1.environmentResourceName

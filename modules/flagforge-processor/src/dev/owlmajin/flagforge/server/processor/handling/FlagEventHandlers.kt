@@ -1,9 +1,9 @@
 package dev.owlmajin.flagforge.server.processor.handling
 
 import dev.owlmajin.flagforge.server.model.EventMessage
-import dev.owlmajin.flagforge.server.model.FlagCreatedEvent
-import dev.owlmajin.flagforge.server.model.FlagEventPayload
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagCreatedEvent
+import dev.owlmajin.flagforge.server.model.flag.FlagEventPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.KClass
 import org.springframework.stereotype.Component

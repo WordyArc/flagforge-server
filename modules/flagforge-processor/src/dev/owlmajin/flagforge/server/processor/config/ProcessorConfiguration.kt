@@ -2,7 +2,7 @@ package dev.owlmajin.flagforge.server.processor.config
 
 import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguration
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.processor.serde.StreamsSerdes
 import io.github.oshai.kotlinlogging.KotlinLogging

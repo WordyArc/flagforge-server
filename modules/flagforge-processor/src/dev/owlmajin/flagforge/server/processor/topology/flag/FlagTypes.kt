@@ -2,8 +2,8 @@ package dev.owlmajin.flagforge.server.processor.topology.flag
 
 import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.EventMessage
-import dev.owlmajin.flagforge.server.model.FlagCommandPayload
-import dev.owlmajin.flagforge.server.model.FlagEventPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagCommandPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagEventPayload
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.processor.handling.CommandResult
 import dev.owlmajin.flagforge.server.processor.handling.EventResult

@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.model
+package dev.owlmajin.flagforge.server.model.flag
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.Instant

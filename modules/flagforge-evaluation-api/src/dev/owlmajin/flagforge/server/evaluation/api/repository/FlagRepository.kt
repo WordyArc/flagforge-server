@@ -2,7 +2,7 @@ package dev.owlmajin.flagforge.server.evaluation.api.repository
 
 import dev.owlmajin.flagforge.server.model.FLAG_INDEX_STORE_NAME
 import dev.owlmajin.flagforge.server.model.FLAG_STATE_STORE_NAME
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import org.apache.kafka.streams.state.QueryableStoreTypes
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
 import org.springframework.kafka.streams.KafkaStreamsInteractiveQueryService

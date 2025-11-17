@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.topology.flag
 
-import dev.owlmajin.flagforge.server.model.FlagCommandPayload
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagCommandPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.CommandResult

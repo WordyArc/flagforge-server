@@ -1,7 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.topology.flag
 
-import dev.owlmajin.flagforge.server.model.FlagEventPayload
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagEventPayload
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.EventResult
 import dev.owlmajin.flagforge.server.processor.streams.TopicDescriptor

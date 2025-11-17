@@ -4,7 +4,7 @@ import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguratio
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.common.streams.serde.KafkaStreamsDeserializer
 import dev.owlmajin.flagforge.server.common.streams.serde.KafkaStreamsSerializer
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Deserializer

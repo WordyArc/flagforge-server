@@ -1,6 +1,6 @@
 package dev.owlmajin.flagforge.server.processor.topology
 
-import dev.owlmajin.flagforge.server.model.FlagState
+import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.processor.streams.Topics
 import dev.owlmajin.flagforge.server.processor.streams.table
 import org.apache.kafka.streams.StreamsBuilder

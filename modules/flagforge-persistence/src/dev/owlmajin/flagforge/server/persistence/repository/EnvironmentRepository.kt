@@ -4,7 +4,7 @@ import dev.owlmajin.flagforge.server.common.kafka.producer.OmniProducerFactory
 import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.CommandMessage
-import dev.owlmajin.flagforge.server.model.CreateEnvironmentCommand
+import dev.owlmajin.flagforge.server.model.environment.CreateEnvironmentCommand
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
