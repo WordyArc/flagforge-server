@@ -53,6 +53,23 @@ class PersistenceTopicConfiguration {
         }
     }
 
+    @Profile("evaluation-api")
+    @Configuration
+    class EvaluationApiTopicsConfiguration {
+
+        @Bean
+        fun evaluationTopicGroup() = TopicGroup("persistence") {
+            buildSet {
+                add(it.flagState)
+                add(it.segmentState)
+                add(it.envState)
+                add(it.projectState)
+                add(it.sdkKeys)
+                add(it.flagKeyIndex)
+            }
+        }
+    }
+
     @Profile("processor")
     @Configuration
     class ProcessorTopicsConfiguration {
@@ -66,6 +83,7 @@ class PersistenceTopicConfiguration {
                 add(it.envState)
                 add(it.projectState)
                 add(it.sdkKeys)
+                add(it.flagKeyIndex)
             }
         }
     }

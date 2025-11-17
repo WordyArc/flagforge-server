@@ -42,6 +42,11 @@ class PersistenceProperties {
             field = value.overrideWith(field)
         }
 
+    var flagKeyIndex = TopicProperties()
+        set(value) {
+            field = value.overrideWith(field)
+        }
+
     init {
         commandMessages = commandMessages.withDefaults(
             "command-messages",
@@ -82,6 +87,12 @@ class PersistenceProperties {
         sdkKeys = sdkKeys.withDefaults(
             "sdk-keys",
             "sdkKeysTopic",
+            COMPACT_POLICY,
+            DATA_SCHEMA_RUNTIME_V1_0_0
+        )
+        flagKeyIndex = flagKeyIndex.withDefaults(
+            "flag-key-index",
+            "flagKeyIndexTopic",
             COMPACT_POLICY,
             DATA_SCHEMA_RUNTIME_V1_0_0
         )
