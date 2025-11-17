@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.processor.handling
+package dev.owlmajin.flagforge.server.processor.handling.flag
 
 import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.flag.CommandRejectedEvent
@@ -11,6 +11,9 @@ import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.flag.FlagType
 import dev.owlmajin.flagforge.server.model.flag.RuleAction
 import dev.owlmajin.flagforge.server.model.flag.toFlagEventMessage
+import dev.owlmajin.flagforge.server.processor.handling.CommandContext
+import dev.owlmajin.flagforge.server.processor.handling.CommandHandler
+import dev.owlmajin.flagforge.server.processor.handling.CommandResult
 import java.time.Instant
 import kotlin.reflect.KClass
 import org.slf4j.LoggerFactory
