@@ -21,7 +21,7 @@ data class Message<T : MessagePayload>(
 )
 
 @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
+    use = JsonTypeInfo.Id.CLASS,
     include = JsonTypeInfo.As.PROPERTY,
     property = "payloadType",
 )
