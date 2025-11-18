@@ -20,16 +20,11 @@ class ProjectService(
         request: CreateProjectRequest,
     ): CommandResponse {
         val projectId = idGenerator.next()
-
-        val payload = CreateProjectCommand(
+        val command = CreateProjectCommand(
             projectId = projectId,
             key = request.key,
             name = request.name,
-        )
-
-        val command = payload.toProjectCommandMessage(
-            actorId = actorId,
-        )
+        ).toProjectCommandMessage(actorId)
 
         projectRepository.create(command)
 

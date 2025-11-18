@@ -1,9 +1,11 @@
 package dev.owlmajin.flagforge.server.control.api.webmvc.v1
 
 import dev.owlmajin.flagforge.server.control.api.service.FlagService
+import dev.owlmajin.flagforge.server.control.api.webmvc.ACTOR_HEADER
 import dev.owlmajin.flagforge.server.control.api.webmvc.API
 import dev.owlmajin.flagforge.server.control.api.webmvc.CONTROL
 import dev.owlmajin.flagforge.server.control.api.webmvc.V_1
+import dev.owlmajin.flagforge.server.control.api.webmvc.resolveActorId
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
 import jakarta.validation.Valid
@@ -22,12 +24,12 @@ class FlagController(private val flagService: FlagService) {
 
     @PostMapping(path = ["/projects/{projectId}/envs/{environmentKey}/flags"])
     suspend fun createFlag(
-        @RequestHeader(name = "X-Actor-Id", required = false) actorHeader: String?,
+        @RequestHeader(name = ACTOR_HEADER, required = false) actorHeader: String?,
         @PathVariable projectId: String,
         @PathVariable environmentKey: String,
         @Valid @RequestBody request: CreateFlagRequest,
     ): ResponseEntity<CommandResponse> {
-        val actorId = actorHeader?.takeIf { it.isNotBlank() } ?: "system"
+        val actorId = resolveActorId(actorHeader)
 
         val result = flagService.createFlag(
             projectId = projectId,
