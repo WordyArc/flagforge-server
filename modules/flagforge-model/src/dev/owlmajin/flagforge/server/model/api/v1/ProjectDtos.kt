@@ -17,5 +17,3 @@ data class ProjectResource(
     val name: String,
     val version: Long,
 )
-
-fun projectResourceName(projectId: String): String = "projects/$projectId"

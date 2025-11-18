@@ -19,7 +19,3 @@ data class EnvironmentResource(
     val version: Long,
 )
 
-fun environmentResourceName(
-    projectId: String,
-    environmentKey: String,
-): String = "projects/$projectId/environments/$environmentKey"

@@ -32,9 +32,3 @@ data class FlagResource(
     val salt: String,
     val updatedAt: Instant,
 )
-
-fun flagResourceName(
-    projectId: String,
-    environmentKey: String,
-    id: String,
-): String = "projects/$projectId/environments/$environmentKey/flags/$id"

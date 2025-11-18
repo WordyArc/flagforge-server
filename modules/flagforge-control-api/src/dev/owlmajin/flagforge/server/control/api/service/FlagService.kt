@@ -46,7 +46,7 @@ class FlagService(
             resourceName = flagResourceName(
                 projectId = projectId,
                 environmentKey = environmentKey,
-                flagId = flagId,
+                flagKey = request.key,
             ),
         )
     }
