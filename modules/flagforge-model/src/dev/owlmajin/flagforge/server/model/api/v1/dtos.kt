@@ -6,3 +6,10 @@ data class CommandResponse(
     val commandId: String,
     val resourceName: String,
 )
+
+data class ErrorResponse(
+    val apiVersion: String = "v1",
+    val status: String,
+    val errorCode: String,
+    val message: String,
+)

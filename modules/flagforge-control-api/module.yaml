@@ -11,9 +11,11 @@ dependencies:
   - ../flagforge-model
 
   - $libs.spring.cloud.gateway.mvc
+  - $libs.spring.context
   - $libs.jackson.module.kotlin
   - $libs.jakarta.validation.api
   - $libs.hibernate.validator
   # see https://github.com/spring-projects/spring-framework/issues/33203
   - $libs.reactor.core
   - $libs.kotlinx.coroutines.reactor
+  - org.apache.kafka:kafka-clients

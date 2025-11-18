@@ -27,13 +27,13 @@ fun <T> T.toProjectCommandMessage(
     correlationId: String? = null,
     timestamp: Instant = Instant.now(),
     messageId: String = Uuid.random().toString(),
-): CommandMessage<T>
-    where T : ProjectCommandPayload = commandMessage(
-    aggregateId = projectId,
-    aggregateType = AggregateType.PROJECT,
-    actorId = actorId,
-    payload = this,
-    timestamp = timestamp,
-    correlationId = correlationId,
-    messageId = messageId,
-)
+): CommandMessage<T> where T : ProjectCommandPayload =
+    commandMessage(
+        aggregateId = projectId,
+        aggregateType = AggregateType.PROJECT,
+        actorId = actorId,
+        payload = this,
+        timestamp = timestamp,
+        correlationId = correlationId,
+        messageId = messageId,
+    )
