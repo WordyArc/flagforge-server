@@ -21,17 +21,12 @@ class EnvironmentService(
         request: CreateEnvironmentRequest,
     ): CommandResponse {
         val environmentId = idGenerator.next()
-
-        val payload = CreateEnvironmentCommand(
+        val command = CreateEnvironmentCommand(
             environmentId = environmentId,
             projectId = projectId,
             key = request.key,
             name = request.name,
-        )
-
-        val command = payload.toEnvironmentCommandMessage(
-            actorId = actorId,
-        )
+        ).toEnvironmentCommandMessage(actorId)
 
         environmentRepository.create(command)
 

@@ -23,8 +23,7 @@ class FlagService(
         request: CreateFlagRequest
     ): CommandResponse {
         val flagId = idGenerator.next()
-
-        val commandPayload = CreateFlagCommand(
+        val command = CreateFlagCommand(
             flagId = flagId,
             projectId = projectId,
             environmentKey = environmentKey,
@@ -34,10 +33,7 @@ class FlagService(
             rules = request.rules,
             defaultVariant = request.defaultVariant,
             salt = request.salt ?: flagId,
-        )
-        val command = commandPayload.toFlagCommandMessage(
-            actorId = actorId,
-        )
+        ).toFlagCommandMessage(actorId)
 
         flagRepository.create(command)
 
