@@ -21,11 +21,11 @@ class EvaluationServiceImpl(private val flagRepository: FlagRepository) : Evalua
     override suspend fun evaluate(request: EvaluationDto): EvaluationResult {
         val flag: FlagState? = flagRepository.findByKey(
             projectId = request.projectId,
-            environmentKey = request.environment,
+            environmentKey = request.environmentKey,
             flagKey = request.flagKey,
         )
         if (flag == null) {
-            log.debug { "Flag not found in read model. projectId=${request.projectId}, env=${request.environment}, key=${request.flagKey}" }
+            log.debug { "Flag not found in read model. projectId=${request.projectId}, env=${request.environmentKey}, key=${request.flagKey}" }
             return notFound(request)
         }
 
@@ -33,7 +33,7 @@ class EvaluationServiceImpl(private val flagRepository: FlagRepository) : Evalua
 
         return EvaluationResult(
             projectId = request.projectId,
-            environment = request.environment,
+            environmentKey = request.environmentKey,
             flagKey = request.flagKey,
             enabled = eval.enabled,
             variant = eval.variant,
@@ -43,7 +43,7 @@ class EvaluationServiceImpl(private val flagRepository: FlagRepository) : Evalua
 
     private fun notFound(request: EvaluationDto) = EvaluationResult(
         projectId = request.projectId,
-        environment = request.environment,
+        environmentKey = request.environmentKey,
         flagKey = request.flagKey,
         enabled = false,
         variant = null,

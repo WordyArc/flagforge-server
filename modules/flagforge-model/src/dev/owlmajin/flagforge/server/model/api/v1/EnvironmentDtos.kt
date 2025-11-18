@@ -11,11 +11,11 @@ data class CreateEnvironmentRequest(
 )
 
 data class EnvironmentResource(
-    val name: String,
+    val resourceName: String,
     val environmentId: String,
     val projectId: String,
     val key: String,
-    val displayName: String,
+    val name: String,
     val version: Long,
 )
 

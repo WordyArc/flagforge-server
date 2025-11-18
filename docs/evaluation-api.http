@@ -5,7 +5,7 @@ Content-Type: application/json
 
 {
   "projectId": "{{projectId}}",
-  "environment": "dev",
+  "environmentKey": "dev",
   "flagKey": "new_backend",
   "uid": "user-123",
   "attributes": {}

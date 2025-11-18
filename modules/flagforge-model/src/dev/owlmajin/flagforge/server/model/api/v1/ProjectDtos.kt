@@ -11,12 +11,11 @@ data class CreateProjectRequest(
 )
 
 data class ProjectResource(
-    val name: String,
+    val resourceName: String,
     val projectId: String,
     val key: String,
-    val displayName: String,
+    val name: String,
     val version: Long,
 )
 
-fun projectResourceName(projectId: String): String =
-    "projects/$projectId"
+fun projectResourceName(projectId: String): String = "projects/$projectId"
