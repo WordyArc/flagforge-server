@@ -6,6 +6,7 @@ import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.EventPayload
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.model.MessageKind
+import dev.owlmajin.flagforge.server.processor.handling.CommandResult
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.StreamsBuilder
@@ -53,6 +54,15 @@ fun <K, C, S, R> KStream<K, C>.withState(
     joiner: (C, S?) -> R,
 ): KStream<K, R> = leftJoin(table, joiner)
 
+
+fun KStream<String, CommandResult>.toDomainEvents(): KStream<String, Message<*>> =
+    flatMapValues { result ->
+        when (result) {
+            is CommandResult.Applied -> listOf(result.event as Message<*>)
+            is CommandResult.Rejected -> listOf(result.event as Message<*>)
+            CommandResult.Ignored -> emptyList()
+        }
+    }
 
 inline fun <K, V> KStream<K, V>.debugLog(
     label: String,
