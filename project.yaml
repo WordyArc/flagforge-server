@@ -8,3 +8,4 @@ modules:
   - modules/flagforge-common
   - modules/flagforge-common-streams
   - modules/flagforge-evaluation-api
+  - modules/flagforge-history
