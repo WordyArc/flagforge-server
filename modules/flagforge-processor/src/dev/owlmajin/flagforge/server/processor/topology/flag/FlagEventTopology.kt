@@ -10,6 +10,7 @@ import dev.owlmajin.flagforge.server.processor.streams.nullablePublishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
 import dev.owlmajin.flagforge.server.processor.streams.withState
 import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
+import dev.owlmajin.flagforge.server.processor.topology.logging.logIncomingEvents
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.kstream.KTable

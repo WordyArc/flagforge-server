@@ -11,7 +11,7 @@ import dev.owlmajin.flagforge.server.processor.streams.publishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
 import dev.owlmajin.flagforge.server.processor.streams.withState
 import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
-import dev.owlmajin.flagforge.server.processor.topology.flag.logIncomingCommands
+import dev.owlmajin.flagforge.server.processor.topology.logging.logIncomingCommands
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.streams.kstream.KStream
 import org.springframework.stereotype.Component

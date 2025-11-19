@@ -1,23 +1,17 @@
 package dev.owlmajin.flagforge.server.processor.topology.project
 
-import dev.owlmajin.flagforge.server.model.EventMessage
-import dev.owlmajin.flagforge.server.model.Message
-import dev.owlmajin.flagforge.server.model.project.ProjectEventPayload
 import dev.owlmajin.flagforge.server.model.project.ProjectState
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.EventResult
-import dev.owlmajin.flagforge.server.processor.streams.eventsOf
+import dev.owlmajin.flagforge.server.processor.streams.TopicDescriptor
 import dev.owlmajin.flagforge.server.processor.streams.nullablePublishTo
 import dev.owlmajin.flagforge.server.processor.streams.stream
 import dev.owlmajin.flagforge.server.processor.streams.withState
 import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
-import dev.owlmajin.flagforge.server.processor.topology.flag.logIncomingEvents
+import dev.owlmajin.flagforge.server.processor.topology.logging.logIncomingEvents
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.kafka.streams.kstream.KStream
+import org.apache.kafka.streams.KeyValue
 import org.springframework.stereotype.Component
-
-typealias ProjectEventStream = KStream<String, EventMessage<ProjectEventPayload>>
-typealias ProjectEventResultStream = KStream<String, EventResult>
 
 @Component
 class ProjectEventTopology : AbstractTopology() {
@@ -30,17 +24,15 @@ class ProjectEventTopology : AbstractTopology() {
         val eventResults =
             stream(topics.events)
                 .logIncomingEvents()
-                .toProjectEvents()
+                .projectEvents()
                 .processProjectEvents(projectState, messageProcessor)
                 .skipIgnoredEvents()
 
-        eventResults.persistProjectState()
+        eventResults.persistProjectState(topics.projectState)
+        eventResults.rebuildProjectKeyIndex(topics.projectKeyIndex)
 
         log.info { "ProjectEventTopology configured: events -> projectState" }
     }
-
-    private fun KStream<String, Message<*>>.toProjectEvents(): ProjectEventStream =
-        eventsOf<ProjectEventPayload>()
 
     private fun ProjectEventStream.processProjectEvents(
         projectState: org.apache.kafka.streams.kstream.KTable<String, ProjectState>,
@@ -53,12 +45,35 @@ class ProjectEventTopology : AbstractTopology() {
     private fun ProjectEventResultStream.skipIgnoredEvents(): ProjectEventResultStream =
         filter { _, result -> result !is EventResult.Ignored }
 
-    private fun ProjectEventResultStream.persistProjectState() {
+    private fun ProjectEventResultStream.persistProjectState(
+        projectStateTopic: TopicDescriptor<String, ProjectState>,
+    ) {
         mapValues { result ->
             when (result) {
                 is EventResult.Applied<*> -> result.newState as? ProjectState
                 EventResult.Ignored -> null
             }
-        }.nullablePublishTo(topics.projectState)
+        }.nullablePublishTo(projectStateTopic)
+    }
+
+    private fun ProjectEventResultStream.rebuildProjectKeyIndex(
+        projectKeyIndexTopic: TopicDescriptor<String, String>,
+    ) {
+        flatMap { _, result ->
+            when (result) {
+                is EventResult.Applied<*> -> {
+                    val before = result.previousState as? ProjectState
+                    val after = result.newState as? ProjectState
+
+                    when {
+                        after != null -> listOf(KeyValue(after.key, after.id))
+                        before != null -> listOf(KeyValue(before.key, null))
+                        else -> emptyList()
+                    }
+                }
+
+                EventResult.Ignored -> emptyList()
+            }
+        }.nullablePublishTo(projectKeyIndexTopic)
     }
 }

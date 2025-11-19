@@ -42,6 +42,11 @@ class PersistenceProperties {
             field = value.overrideWith(field)
         }
 
+    var projectKeyIndex = TopicProperties()
+        set(value) {
+            field = value.overrideWith(field)
+        }
+
     var flagKeyIndex = TopicProperties()
         set(value) {
             field = value.overrideWith(field)
@@ -87,6 +92,12 @@ class PersistenceProperties {
         sdkKeys = sdkKeys.withDefaults(
             "sdk-keys",
             "sdkKeysTopic",
+            COMPACT_POLICY,
+            DATA_SCHEMA_RUNTIME_V1_0_0
+        )
+        projectKeyIndex = projectKeyIndex.withDefaults(
+            "project-key-index",
+            "projectKeyIndexTopic",
             COMPACT_POLICY,
             DATA_SCHEMA_RUNTIME_V1_0_0
         )

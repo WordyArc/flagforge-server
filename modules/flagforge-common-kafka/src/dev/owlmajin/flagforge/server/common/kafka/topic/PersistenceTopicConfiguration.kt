@@ -65,6 +65,7 @@ class PersistenceTopicConfiguration {
                 add(it.envState)
                 add(it.projectState)
                 add(it.sdkKeys)
+                add(it.projectKeyIndex)
                 add(it.flagKeyIndex)
             }
         }
@@ -83,6 +84,7 @@ class PersistenceTopicConfiguration {
                 add(it.envState)
                 add(it.projectState)
                 add(it.sdkKeys)
+                add(it.projectKeyIndex)
                 add(it.flagKeyIndex)
             }
         }

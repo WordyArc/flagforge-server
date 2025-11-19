@@ -36,6 +36,7 @@ data class Topics(
     val events: TopicDescriptor<String, Message<*>>,
     val flagState: TopicDescriptor<String, FlagState>,
     val projectState: TopicDescriptor<String, ProjectState>,
+    val projectKeyIndex: TopicDescriptor<String, String>,
     val envState: TopicDescriptor<String, EnvironmentState>,
     val segmentState: TopicDescriptor<String, Any>,
     val flagKeyIndex: TopicDescriptor<String, String>,
@@ -75,6 +76,11 @@ class TopicsConfiguration(
                 name = persistenceProperties.projectState.effectiveName,
                 keySerde = stringSerde,
                 valueSerde = projectStateSerde,
+            ),
+            projectKeyIndex = topic(
+                name = persistenceProperties.projectKeyIndex.effectiveName,
+                keySerde = stringSerde,
+                valueSerde = stringSerde,
             ),
             envState = topic(
                 name = persistenceProperties.envState.effectiveName,

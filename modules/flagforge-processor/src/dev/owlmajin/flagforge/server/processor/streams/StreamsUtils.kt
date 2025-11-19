@@ -11,6 +11,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.kstream.Consumed
+import org.apache.kafka.streams.kstream.GlobalKTable
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.KTable
 import org.apache.kafka.streams.kstream.Produced
@@ -22,6 +23,9 @@ fun <K, V> StreamsBuilder.stream(topic: TopicDescriptor<K, V>): KStream<K, V> =
 
 fun <K, V> StreamsBuilder.table(topic: TopicDescriptor<K, V>): KTable<K, V> =
     table(topic.name, Consumed.with(topic.keySerde, topic.valueSerde))
+
+fun <K, V> StreamsBuilder.globalTable(topic: TopicDescriptor<K, V>): GlobalKTable<K, V> =
+    globalTable(topic.name, Consumed.with(topic.keySerde, topic.valueSerde))
 
 infix fun <K, V> KStream<K, V>.publishTo(topic: TopicDescriptor<K, V>) {
     to(topic.name, Produced.with(topic.keySerde, topic.valueSerde))

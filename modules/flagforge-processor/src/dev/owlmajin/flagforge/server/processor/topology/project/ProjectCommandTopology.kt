@@ -1,25 +1,22 @@
 package dev.owlmajin.flagforge.server.processor.topology.project
 
-import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.Message
+import dev.owlmajin.flagforge.server.model.project.CreateProjectCommand
 import dev.owlmajin.flagforge.server.model.project.ProjectCommandPayload
+import dev.owlmajin.flagforge.server.model.project.ProjectCommandRejectedEvent
 import dev.owlmajin.flagforge.server.model.project.ProjectState
+import dev.owlmajin.flagforge.server.model.project.toProjectEventMessage
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.CommandResult
-import dev.owlmajin.flagforge.server.processor.streams.commandsOf
 import dev.owlmajin.flagforge.server.processor.streams.publishTo
-import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
 import dev.owlmajin.flagforge.server.processor.streams.stream
 import dev.owlmajin.flagforge.server.processor.streams.withState
-import dev.owlmajin.flagforge.server.processor.topology.flag.FlagRawMessageStream
-import dev.owlmajin.flagforge.server.processor.topology.flag.logIncomingCommands
+import dev.owlmajin.flagforge.server.processor.topology.AbstractTopology
+import dev.owlmajin.flagforge.server.processor.topology.logging.logIncomingCommands
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.kafka.streams.kstream.KStream
+import org.apache.kafka.streams.kstream.GlobalKTable
+import org.apache.kafka.streams.kstream.KTable
 import org.springframework.stereotype.Component
-
-typealias ProjectRawMessageStream = KStream<String, Message<*>>
-typealias ProjectCommandStream = KStream<String, CommandMessage<ProjectCommandPayload>>
-typealias ProjectCommandResultStream = KStream<String, CommandResult>
 
 @Component
 class ProjectCommandTopology : AbstractTopology() {
@@ -31,8 +28,11 @@ class ProjectCommandTopology : AbstractTopology() {
 
         stream(topics.commands)
             .logIncomingCommands()
-            .toProjectCommands()
-            .processProjectCommands(projectState, messageProcessor)
+            .projectCommands()
+            .toCommandContext()
+            .withProjectKeyOwner(projectKeyIndex)
+            .withProjectState(projectState)
+            .routeThroughInvariants(messageProcessor)
             .skipIgnoredCommands()
             .toProjectEvents()
             .publishTo(topics.events)
@@ -40,21 +40,48 @@ class ProjectCommandTopology : AbstractTopology() {
         log.info { "ProjectCommandTopology configured: commands -> events" }
     }
 
-    private fun ProjectRawMessageStream.toProjectCommands(): ProjectCommandStream =
-        commandsOf<ProjectCommandPayload>()
+    private fun ProjectCommandStream.toCommandContext(): ProjectCommandContextStream =
+        mapValues { command -> ProjectCommandContext(command, currentState = null) }
 
-    private fun ProjectCommandStream.processProjectCommands(
-        projectState: org.apache.kafka.streams.kstream.KTable<String, ProjectState>,
+    private fun ProjectCommandContextStream.withProjectKeyOwner(
+        projectKeyIndex: GlobalKTable<String, String>,
+    ): ProjectCommandContextStream =
+        leftJoin(
+            projectKeyIndex,
+            { _, context -> context.command.payload.projectKeyOrNull() },
+            { context, ownerId -> if (ownerId == null) context else context.withKeyOwner(ownerId) },
+        )
+
+    private fun ProjectCommandContextStream.withProjectState(
+        projectState: KTable<String, ProjectState>,
+    ): ProjectCommandContextStream =
+        withState(projectState) { context, currentState ->
+            context.copy(currentState = currentState)
+        }
+
+    private fun ProjectCommandContextStream.routeThroughInvariants(
+        messageProcessor: MessageProcessor,
+    ): ProjectCommandResultStream {
+        val duplicates = filter { _, context -> context.isDuplicateProjectKey() }
+        val accepted = filter { _, context -> !context.isDuplicateProjectKey() }
+
+        val rejected = duplicates.mapValues { context: ProjectCommandContext -> context.toDuplicateKeyResult() }
+        val processed = accepted.processProjectCommands(messageProcessor)
+
+        return rejected.merge(processed)
+    }
+
+    private fun ProjectCommandContextStream.processProjectCommands(
         messageProcessor: MessageProcessor,
     ): ProjectCommandResultStream =
-        withState(projectState) { command, currentState ->
-            messageProcessor.processCommand(command, currentState)
+        mapValues { context ->
+            messageProcessor.processCommand(context.command, context.currentState)
         }
 
     private fun ProjectCommandResultStream.skipIgnoredCommands(): ProjectCommandResultStream =
         filter { _, result -> result !is CommandResult.Ignored }
 
-    private fun ProjectCommandResultStream.toProjectEvents(): FlagRawMessageStream =
+    private fun ProjectCommandResultStream.toProjectEvents(): ProjectRawMessageStream =
         flatMapValues { result ->
             when (result) {
                 is CommandResult.Applied -> listOf(result.event as Message<*>)
@@ -62,4 +89,43 @@ class ProjectCommandTopology : AbstractTopology() {
                 CommandResult.Ignored -> emptyList()
             }
         }
+
+    private fun ProjectCommandContext.isDuplicateProjectKey(): Boolean {
+        val payload = command.payload
+        return payload is CreateProjectCommand &&
+                projectKeyOwnerId != null &&
+                projectKeyOwnerId != payload.projectId
+    }
+
+    private fun ProjectCommandContext.toDuplicateKeyResult(): CommandResult {
+        val payload = command.payload as CreateProjectCommand
+        val conflictingProjectId = requireNotNull(projectKeyOwnerId) {
+            "Duplicate key invariant triggered without owner"
+        }
+
+        val event = ProjectCommandRejectedEvent(
+            projectId = payload.projectId,
+            commandId = command.header.id,
+            version = currentState?.version ?: 0L,
+            key = payload.key,
+            reason = DUPLICATE_PROJECT_KEY_REASON,
+            message = "Project key '${payload.key}' already belongs to project '$conflictingProjectId'",
+        ).toProjectEventMessage(
+            actorId = command.header.actorId,
+            correlationId = command.header.correlationId,
+            timestamp = command.header.timestamp,
+        )
+
+        return CommandResult.Rejected(event)
+    }
+
+    private fun ProjectCommandPayload.projectKeyOrNull(): String? =
+        when (this) {
+            is CreateProjectCommand -> key
+            else -> null
+        }
+
+    companion object {
+        private const val DUPLICATE_PROJECT_KEY_REASON = "project-key-already-exists"
+    }
 }

@@ -9,6 +9,7 @@ import dev.owlmajin.flagforge.server.model.project.ProjectState
 import dev.owlmajin.flagforge.server.processor.serde.StreamsSerdes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.kafka.common.serialization.Serde
+import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsConfig
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.context.annotation.Bean
@@ -33,6 +34,7 @@ import tools.jackson.module.kotlin.kotlinModule
 class ProcessorConfiguration() {
 
     private val klog = KotlinLogging.logger { javaClass }
+
     @Bean
     fun createKotlinModule() = kotlinModule {
         enable(KotlinFeature.StrictNullChecks)
@@ -54,6 +56,15 @@ class ProcessorConfiguration() {
 
         val guarantee = kafka.streams.properties["processing.guarantee"] ?: StreamsConfig.EXACTLY_ONCE_V2
         props[StreamsConfig.PROCESSING_GUARANTEE_CONFIG] = guarantee
+
+        props.putIfAbsent(
+            StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG,
+            Serdes.StringSerde::class.java
+        )
+        props.putIfAbsent(
+            StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
+            Serdes.ByteArraySerde::class.java
+        )
 
         props.putIfAbsent(StreamsConfig.STATE_DIR_CONFIG, "data/streams/flagforge-processor")
 

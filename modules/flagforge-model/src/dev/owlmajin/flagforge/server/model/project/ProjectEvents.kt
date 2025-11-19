@@ -22,6 +22,16 @@ data class ProjectCreatedEvent(
     val name: String,
 ) : ProjectEventPayload
 
+@JsonTypeName("project.command-rejected")
+data class ProjectCommandRejectedEvent(
+    override val projectId: String,
+    override val commandId: String,
+    override val version: Long,
+    val key: String,
+    val reason: String,
+    val message: String,
+) : ProjectEventPayload
+
 fun <T> T.toProjectEventMessage(
     actorId: String?,
     correlationId: String? = null,
