@@ -1,4 +1,4 @@
-package dev.owlmajin.flagforge.server.processor.topology.flag
+package dev.owlmajin.flagforge.server.processor.topology.logging
 
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.processor.streams.debugLog
