@@ -3,3 +3,9 @@ product: jvm/app
 apply:
   - ../../common.module-template.yaml
   - ../../spring.module-template.yaml
+
+dependencies:
+  - ../flagforge-model
+
+  - $libs.spring.context
+  - $libs.jackson.databind
