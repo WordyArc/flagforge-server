@@ -1,6 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.streams
 
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
+import dev.owlmajin.flagforge.server.history.HistoryEventEnvelope
 import dev.owlmajin.flagforge.server.model.FLAG_INDEX_TOPIC_NAME
 import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
@@ -40,6 +41,9 @@ data class Topics(
     val envState: TopicDescriptor<String, EnvironmentState>,
     val segmentState: TopicDescriptor<String, Any>,
     val flagKeyIndex: TopicDescriptor<String, String>,
+    val flagHistory: TopicDescriptor<String, HistoryEventEnvelope>,
+    val projectHistory: TopicDescriptor<String, HistoryEventEnvelope>,
+    val environmentHistory: TopicDescriptor<String, HistoryEventEnvelope>,
 )
 
 @Configuration
@@ -50,6 +54,7 @@ class TopicsConfiguration(
     private val projectStateSerde: Serde<ProjectState>,
     private val environmentStateSerde: Serde<EnvironmentState>,
     private val anySerde: Serde<Any>,
+    private val historyEventEnvelopeSerde: Serde<HistoryEventEnvelope>,
 ) {
 
     @Bean
@@ -96,6 +101,21 @@ class TopicsConfiguration(
                 name = FLAG_INDEX_TOPIC_NAME,
                 keySerde = stringSerde,
                 valueSerde = stringSerde,
+            ),
+            flagHistory = topic(
+                name = persistenceProperties.flagHistory.effectiveName,
+                keySerde = stringSerde,
+                valueSerde = historyEventEnvelopeSerde,
+            ),
+            projectHistory = topic(
+                name = persistenceProperties.projectHistory.effectiveName,
+                keySerde = stringSerde,
+                valueSerde = historyEventEnvelopeSerde,
+            ),
+            environmentHistory = topic(
+                name = persistenceProperties.environmentHistory.effectiveName,
+                keySerde = stringSerde,
+                valueSerde = historyEventEnvelopeSerde,
             ),
         )
     }

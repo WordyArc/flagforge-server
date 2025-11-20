@@ -10,9 +10,10 @@ data class EventContext<S : Any>(
 
 sealed interface EventResult {
 
-    data class Applied<S: Any?>(
+    data class Applied<S : Any?> (
         val previousState: S?,
         val newState: S?,
+        val event: EventMessage<out EventPayload>,
     ) : EventResult
 
     data object Ignored : EventResult

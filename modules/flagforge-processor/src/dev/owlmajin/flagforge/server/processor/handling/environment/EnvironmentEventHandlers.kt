@@ -42,6 +42,6 @@ class EnvironmentCreatedEventHandler : EventHandler<EnvironmentCreatedEvent, Env
             updatedAt = message.header.timestamp,
         )
 
-        return EventResult.Applied(current, state)
+        return EventResult.Applied(current, state, message)
     }
 }

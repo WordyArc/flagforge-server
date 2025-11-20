@@ -1,5 +1,6 @@
 package dev.owlmajin.flagforge.server.common.kafka.topic
 
+import dev.owlmajin.flagforge.server.common.kafka.DATA_SCHEMA_HISTORIC_V1_0_0
 import dev.owlmajin.flagforge.server.common.kafka.DATA_SCHEMA_RUNTIME_V1_0_0
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties
@@ -52,6 +53,21 @@ class PersistenceProperties {
             field = value.overrideWith(field)
         }
 
+    var flagHistory = TopicProperties()
+        set(value) {
+            field = value.overrideWith(field)
+        }
+
+    var projectHistory = TopicProperties()
+        set(value) {
+            field = value.overrideWith(field)
+        }
+
+    var environmentHistory = TopicProperties()
+        set(value) {
+            field = value.overrideWith(field)
+        }
+
     init {
         commandMessages = commandMessages.withDefaults(
             "command-messages",
@@ -98,7 +114,7 @@ class PersistenceProperties {
         projectKeyIndex = projectKeyIndex.withDefaults(
             "project-key-index",
             "projectKeyIndexTopic",
-            COMPACT_POLICY,
+            DELETE_POLICY,
             DATA_SCHEMA_RUNTIME_V1_0_0
         )
         flagKeyIndex = flagKeyIndex.withDefaults(
@@ -106,6 +122,24 @@ class PersistenceProperties {
             "flagKeyIndexTopic",
             COMPACT_POLICY,
             DATA_SCHEMA_RUNTIME_V1_0_0
+        )
+        flagHistory = flagHistory.withDefaults(
+            "flag-history",
+            "flagHistoryTopic",
+            DELETE_POLICY,
+            DATA_SCHEMA_HISTORIC_V1_0_0,
+        )
+        projectHistory = projectHistory.withDefaults(
+            "project-history",
+            "projectHistoryTopic",
+            DELETE_POLICY,
+            DATA_SCHEMA_HISTORIC_V1_0_0,
+        )
+        environmentHistory = environmentHistory.withDefaults(
+            "environment-history",
+            "environmentHistoryTopic",
+            DELETE_POLICY,
+            DATA_SCHEMA_HISTORIC_V1_0_0,
         )
     }
 }

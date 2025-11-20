@@ -41,6 +41,6 @@ class ProjectCreatedEventHandler : EventHandler<ProjectCreatedEvent, ProjectStat
             updatedAt = message.header.timestamp,
         )
 
-        return EventResult.Applied(current, state)
+        return EventResult.Applied(current, state, message)
     }
 }

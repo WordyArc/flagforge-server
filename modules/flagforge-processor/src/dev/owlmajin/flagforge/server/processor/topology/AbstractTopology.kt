@@ -3,6 +3,7 @@ package dev.owlmajin.flagforge.server.processor.topology
 import dev.owlmajin.flagforge.server.model.environment.EnvironmentState
 import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.project.ProjectState
+import dev.owlmajin.flagforge.server.history.HistoryEventFactory
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.streams.Topics
 import org.apache.kafka.streams.StreamsBuilder
@@ -20,6 +21,9 @@ abstract class AbstractTopology : StreamsTopology {
 
     @Autowired
     private lateinit var stateTables: StateTables
+
+    @Autowired
+    protected lateinit var historyEventFactory: HistoryEventFactory
 
     @Autowired
     protected lateinit var builder: StreamsBuilder

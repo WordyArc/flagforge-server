@@ -36,6 +36,7 @@ class EnvironmentEventTopology : AbstractTopology() {
                 .skipIgnoredEvents()
 
         eventResults.persistEnvironmentState()
+        eventResults.publishEnvironmentHistory()
 
         log.info { "EnvironmentEventTopology configured: events -> envState" }
     }
@@ -61,5 +62,22 @@ class EnvironmentEventTopology : AbstractTopology() {
                 EventResult.Ignored -> null
             }
         }.nullablePublishTo(topics.envState)
+    }
+
+    private fun EnvironmentEventResultStream.publishEnvironmentHistory() {
+        mapValues { result ->
+            when (result) {
+                is EventResult.Applied<*> -> historyEventFactory.environment(
+                    event = result.event as EventMessage<EnvironmentEventPayload>,
+                    before = result.previousState as? EnvironmentState,
+                    after = result.newState as? EnvironmentState,
+                )
+
+                EventResult.Ignored -> null
+            }
+        }
+            .filter { _, envelope -> envelope != null }
+            .mapValues { envelope -> envelope!! }
+            .nullablePublishTo(topics.environmentHistory)
     }
 }

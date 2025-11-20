@@ -1,5 +1,6 @@
 package dev.owlmajin.flagforge.server.processor.topology.flag
 
+import dev.owlmajin.flagforge.server.model.EventMessage
 import dev.owlmajin.flagforge.server.model.flag.FlagEventPayload
 import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
@@ -33,6 +34,7 @@ class FlagEventTopology : AbstractTopology() {
 
         eventResults.persistFlagState(topics.flagState)
         eventResults.rebuildFlagKeyIndex(topics.flagKeyIndex)
+        eventResults.publishFlagHistory()
 
         log.info { "FlagEventTopology configured: events -> flagState + flagKeyIndex" }
     }
@@ -91,5 +93,22 @@ class FlagEventTopology : AbstractTopology() {
                 EventResult.Ignored -> emptyList()
             }
         }.nullablePublishTo(indexTopic)
+    }
+
+    private fun FlagEventResultStream.publishFlagHistory() {
+        mapValues { result ->
+            when (result) {
+                is EventResult.Applied<*> -> historyEventFactory.flag(
+                    event = result.event as EventMessage<FlagEventPayload>,
+                    before = result.previousState as? FlagState,
+                    after = result.newState as? FlagState,
+                )
+
+                EventResult.Ignored -> null
+            }
+        }
+            .filter { _, envelope -> envelope != null }
+            .mapValues { envelope -> envelope!! }
+            .nullablePublishTo(topics.flagHistory)
     }
 }

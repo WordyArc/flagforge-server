@@ -8,6 +8,7 @@ dependencies:
   - ../flagforge-model
   - ../flagforge-common
   - ../flagforge-common-kafka
+  - ../flagforge-history
   # - ../flagforge-common-streams TODO: it takes too much time, maybe later
 
   - $libs.spring.context

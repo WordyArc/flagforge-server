@@ -1,5 +1,7 @@
 package dev.owlmajin.flagforge.server.processor.topology.project
 
+import dev.owlmajin.flagforge.server.model.EventMessage
+import dev.owlmajin.flagforge.server.model.project.ProjectEventPayload
 import dev.owlmajin.flagforge.server.model.project.ProjectState
 import dev.owlmajin.flagforge.server.processor.MessageProcessor
 import dev.owlmajin.flagforge.server.processor.handling.EventResult
@@ -30,6 +32,7 @@ class ProjectEventTopology : AbstractTopology() {
 
         eventResults.persistProjectState(topics.projectState)
         eventResults.rebuildProjectKeyIndex(topics.projectKeyIndex)
+        eventResults.publishProjectHistory()
 
         log.info { "ProjectEventTopology configured: events -> projectState" }
     }
@@ -75,5 +78,22 @@ class ProjectEventTopology : AbstractTopology() {
                 EventResult.Ignored -> emptyList()
             }
         }.nullablePublishTo(projectKeyIndexTopic)
+    }
+
+    private fun ProjectEventResultStream.publishProjectHistory() {
+        mapValues { result ->
+            when (result) {
+                is EventResult.Applied<*> -> historyEventFactory.project(
+                    event = result.event as EventMessage<ProjectEventPayload>,
+                    before = result.previousState as? ProjectState,
+                    after = result.newState as? ProjectState,
+                )
+
+                EventResult.Ignored -> null
+            }
+        }
+            .filter { _, envelope -> envelope != null }
+            .mapValues { envelope -> envelope!! }
+            .nullablePublishTo(topics.projectHistory)
     }
 }

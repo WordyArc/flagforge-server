@@ -86,6 +86,9 @@ class PersistenceTopicConfiguration {
                 add(it.sdkKeys)
                 add(it.projectKeyIndex)
                 add(it.flagKeyIndex)
+                add(it.flagHistory)
+                add(it.projectHistory)
+                add(it.environmentHistory)
             }
         }
     }
