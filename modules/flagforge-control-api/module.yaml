@@ -10,7 +10,7 @@ dependencies:
   - ../flagforge-persistence
   - ../flagforge-model
 
-  - $libs.spring.cloud.gateway.mvc
+  - $libs.spring.boot.starter.web
   - $libs.spring.context
   - $libs.jackson.module.kotlin
   - $libs.jakarta.validation.api

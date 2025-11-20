@@ -16,10 +16,6 @@ dependencies:
   #  - org.yaml:snakeyaml
   - $libs.spring.boot.starter.web
 
-  # только типы для exclude
-  - $libs.spring.cloud.gateway.mvc
-  - $libs.spring.kafka
-
 test-dependencies:
   - $libs.spring.boot.starter.test
 

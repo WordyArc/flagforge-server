@@ -5,7 +5,6 @@ import dev.owlmajin.flagforge.server.evaluation.api.config.EvaluationApiConfigur
 import dev.owlmajin.flagforge.server.processor.config.ProcessorConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.cloud.gateway.mvc.config.ProxyResponseAutoConfiguration
 import org.springframework.context.annotation.Import
 
 @Import(
@@ -13,12 +12,7 @@ import org.springframework.context.annotation.Import
     ProcessorConfiguration::class,
     EvaluationApiConfiguration::class,
 )
-@SpringBootApplication(
-    //scanBasePackages = ["dev.owlmajin.flagforge.server"],
-    exclude = [
-        ProxyResponseAutoConfiguration::class
-    ]
-)
+@SpringBootApplication(/*scanBasePackages = ["dev.owlmajin.flagforge.server"]*/)
 class Application
 
 fun main(args: Array<String>) {
