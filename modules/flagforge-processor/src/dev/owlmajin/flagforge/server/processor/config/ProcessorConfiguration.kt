@@ -2,6 +2,8 @@ package dev.owlmajin.flagforge.server.processor.config
 
 import dev.owlmajin.flagforge.server.common.kafka.config.CommonKafkaConfiguration
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
+import dev.owlmajin.flagforge.server.history.HistoryEventEnvelope
+import dev.owlmajin.flagforge.server.history.config.HistoryConfiguration
 import dev.owlmajin.flagforge.server.model.flag.FlagState
 import dev.owlmajin.flagforge.server.model.Message
 import dev.owlmajin.flagforge.server.model.environment.EnvironmentState
@@ -27,7 +29,7 @@ import tools.jackson.module.kotlin.KotlinModule
 import tools.jackson.module.kotlin.kotlinModule
 
 @Profile("processor")
-@Import(CommonKafkaConfiguration::class)
+@Import(CommonKafkaConfiguration::class, HistoryConfiguration::class)
 @Configuration
 @EnableKafkaStreams
 @ComponentScan(basePackages = ["dev.owlmajin.flagforge.server.processor"])
@@ -91,4 +93,8 @@ class ProcessorConfiguration() {
     @Bean
     fun anySerde(jsonMapper: JsonMapper): Serde<Any> =
         StreamsSerdes.json<Any>(jsonMapper)
+
+    @Bean
+    fun historyEventEnvelopeSerde(jsonMapper: JsonMapper): Serde<HistoryEventEnvelope> =
+        StreamsSerdes.json(jsonMapper)
 }
