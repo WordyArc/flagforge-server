@@ -1,0 +1,9 @@
+product: jvm/app
+
+apply:
+  - ../../common.module-template.yaml
+  - ../../spring.module-template.yaml
+
+dependencies:
+  - $libs.spring.cloud.starter.gateway.server.webflux
+  - $libs.kotlinx.coroutines.reactor

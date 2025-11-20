@@ -1,6 +1,7 @@
 [versions]
 spring-bom = "4.0.0-RC2"
-spring-cloud-bom = "2025.0.0"
+spring-cloud-bom = "2025.1.0-RC1"
+kotlin-logging = "7.0.13"
 
 [libraries]
 # --- kotlin ---
@@ -22,14 +23,17 @@ spring-kafka = "org.springframework.kafka:spring-kafka"
 spring-boot-kafka = "org.springframework.boot:spring-boot-kafka"
 spring-boot-starter-kafka = "org.springframework.boot:spring-boot-starter-kafka"
 
+spring-cloud-starter-gateway-server-webflux = "org.springframework.cloud:spring-cloud-starter-gateway-server-webflux"
 spring-cloud-gateway-mvc = "org.springframework.cloud:spring-cloud-gateway-mvc"
+spring-cloud-gateway-webflux = "org.springframework.cloud:spring-cloud-gateway-webflux"
+
 spring-boot-starter-webflux = "org.springframework.boot:spring-boot-starter-webflux"
 
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 
 # -- other
 slf4j-api = "org.slf4j:slf4j-api"
-kotlin-logging-jvm = "io.github.oshai:kotlin-logging-jvm:7.0.13"
+kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 
 jakarta-annotation-api = "jakarta.annotation:jakarta.annotation-api"
 jakarta-validation-api = "jakarta.validation:jakarta.validation-api"
