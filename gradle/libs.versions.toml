@@ -1,5 +1,5 @@
 [versions]
-spring-bom = "4.0.0-RC2"
+spring-bom = "4.0.0"
 spring-cloud-bom = "2025.1.0-RC1"
 kotlin-logging = "7.0.13"
 
@@ -19,9 +19,6 @@ spring-context = "org.springframework:spring-context"
 spring-core = "org.springframework:spring-core"
 spring-boot-starter-web = "org.springframework.boot:spring-boot-starter-web"
 spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
-spring-kafka = "org.springframework.kafka:spring-kafka"
-spring-boot-kafka = "org.springframework.boot:spring-boot-kafka"
-spring-boot-starter-kafka = "org.springframework.boot:spring-boot-starter-kafka"
 
 spring-cloud-starter-gateway-server-webflux = "org.springframework.cloud:spring-cloud-starter-gateway-server-webflux"
 spring-cloud-gateway-mvc = "org.springframework.cloud:spring-cloud-gateway-mvc"
@@ -31,6 +28,13 @@ spring-boot-starter-webflux = "org.springframework.boot:spring-boot-starter-webf
 
 spring-boot-starter-test = "org.springframework.boot:spring-boot-starter-test"
 
+
+# --- kafka ---
+kafka-streams = "org.apache.kafka:kafka-streams"
+spring-kafka = "org.springframework.kafka:spring-kafka"
+spring-boot-kafka = "org.springframework.boot:spring-boot-kafka"
+spring-boot-starter-kafka = "org.springframework.boot:spring-boot-starter-kafka"
+
 # -- other
 slf4j-api = "org.slf4j:slf4j-api"
 kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
@@ -39,10 +43,10 @@ jakarta-annotation-api = "jakarta.annotation:jakarta.annotation-api"
 jakarta-validation-api = "jakarta.validation:jakarta.validation-api"
 hibernate-validator = "org.hibernate.validator:hibernate-validator"
 
+# --- jackson ---
 jackson-core = "tools.jackson.core:jackson-core"
 jackson-databind = "tools.jackson.core:jackson-databind"
 jackson-module-kotlin = "tools.jackson.module:jackson-module-kotlin"
 jackson2-databind = "com.fasterxml.jackson.core:jackson-databind"
 jackson2-datatype-jsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 jackson2-module-kotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
-kafka-streams = "org.apache.kafka:kafka-streams"
