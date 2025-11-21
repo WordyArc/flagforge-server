@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### Create environment
-@eProjectId =c259ffc6-c58e-4452-922b-1e66d6f9a701
+@eProjectId =b626f106-184f-4cc3-a8cf-7c96ce707cd1
 
 POST http://localhost:8184/api/v1/control/projects/{{eProjectId}}/envs
 X-Actor-Id: test-user
@@ -21,14 +21,14 @@ Content-Type: application/json
 }
 
 ### Create flag
-@fProjectId =c259ffc6-c58e-4452-922b-1e66d6f9a701
+@fProjectId =b626f106-184f-4cc3-a8cf-7c96ce707cd1
 @environmentKey = dev
 POST http://localhost:8184/api/v1/control/projects/{{fProjectId}}/envs/{{environmentKey}}/flags
 X-Actor-Id: test-user
 Content-Type: application/json
 
 {
-  "key": "new_backend_flow",
+  "key": "new_backend",
   "type": "BOOLEAN",
   "enabled": true,
   "defaultVariant": null,
