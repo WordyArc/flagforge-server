@@ -1,0 +1,134 @@
+name: flagforge
+
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d keycloak || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ff-net
+
+  keycloak:
+    image: keycloak/keycloak:26.4.5
+    container_name: keycloak
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./keycloak/keycloak.conf:/opt/keycloak/conf/keycloak.conf:ro
+      - ./keycloak/realms:/opt/keycloak/data/import:ro
+    ports:
+      - "7766:8080"
+    networks:
+      - ff-net
+
+  init-keycloak:
+    image: alpine:3.22.2
+    container_name: keycloak-init
+    user: "0:0"
+    depends_on:
+      keycloak:
+        condition: service_started
+    environment:
+      KC_URL: http://keycloak:8080
+      # see bootstrap-admin-* in keycloak.conf
+      BOOTSTRAP_ADMIN_USERNAME: admin
+      BOOTSTRAP_ADMIN_PASSWORD: admin
+      # created permanent admin
+      PERM_ADMIN_USERNAME: kcadmin
+      PERM_ADMIN_PASSWORD: kcadmin
+      DELETE_BOOTSTRAP_ADMIN: "true"
+    volumes:
+      - ./keycloak/init-keycloak.sh:/init-keycloak.sh:ro
+    entrypoint: ["/bin/sh","/init-keycloak.sh"]
+    restart: "no"
+    networks:
+      - ff-net
+
+  server-token:
+    image: wordyarc/flagforge-server-token:0.1.0
+    container_name: server-token
+    restart: unless-stopped
+    env_file:
+      - ./server-token/JAVA_OPTS
+    depends_on:
+      keycloak:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/
+    volumes:
+      - ./server-token/config:/config
+    ports:
+      - "8085:8085" # app
+      - "8086:8086" # actuator
+    networks:
+      - ff-net
+
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      - CLUSTER_ID=5L6g3nShT-eMCtK--X86sw
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:29092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ff-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8078:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+    networks:
+      - ff-net
+
+volumes:
+  db-data:
+  kafka_data:
+
+
+networks:
+  ff-net:

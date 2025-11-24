@@ -1,0 +1,163 @@
+{
+  "id": "flagforge",
+  "realm": "flagforge",
+  "displayName": "Flagforge Realm",
+  "enabled": true,
+  "sslRequired": "NONE",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "registrationEmailAsUsername": false,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "ff_admin",
+        "description": "Flagforge application administrator",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "flagforge"
+      },
+      {
+        "name": "ff_user",
+        "description": "Flagforge regular user",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "flagforge"
+      }
+    ],
+    "client": {
+      "flagforge-cloud-gateway": [
+        {
+          "name": "api_admin",
+          "description": "Full access to Flagforge APIs via gateway",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "flagforge"
+        },
+        {
+          "name": "api_user",
+          "description": "Standard access to Flagforge APIs via gateway",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "flagforge"
+        }
+      ]
+    }
+  },
+
+  "groups": [
+    {
+      "name": "admins",
+      "path": "/admins",
+      "realmRoles": [ "ff_admin" ],
+      "clientRoles": {
+        "flagforge-cloud-gateway": [ "api_admin" ]
+      }
+    },
+    {
+      "name": "users",
+      "path": "/users",
+      "realmRoles": [ "ff_user" ],
+      "clientRoles": {
+        "flagforge-cloud-gateway": [ "api_user" ]
+      }
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "flagforge-cloud-gateway",
+      "name": "Flagforge Cloud Gateway",
+      "description": "Entry-point API / gateway for Flagforge",
+      "protocol": "openid-connect",
+
+      "bearerOnly": true,
+      "publicClient": false,
+
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+
+      "fullScopeAllowed": false,
+      "attributes": {
+        "access.token.lifespan": "300"
+      }
+    },
+    {
+      "clientId": "flagforge-frontend",
+      "name": "Flagforge Frontend",
+      "description": "SPA / frontend for Flagforge",
+      "protocol": "openid-connect",
+
+      "publicClient": true,
+      "bearerOnly": false,
+
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "300"
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "username": "ff-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Flagforge",
+      "lastName": "Admin",
+      "email": "ff-admin@example.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ff",
+          "temporary": false
+        }
+      ],
+      "groups": [ "/admins" ],
+      "realmRoles": [ "ff_admin", "ff_user" ],
+      "clientRoles": {
+        "flagforge-cloud-gateway": [ "api_admin" ]
+      }
+    },
+    {
+      "username": "ff-user",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Flagforge",
+      "lastName": "User",
+      "email": "ff-user@example.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ff",
+          "temporary": false
+        }
+      ],
+      "groups": [ "/users" ],
+      "realmRoles": [ "ff_user" ],
+      "clientRoles": {
+        "flagforge-cloud-gateway": [ "api_user" ]
+      }
+    }
+  ]
+}
