@@ -1,5 +1,5 @@
 [versions]
-spring-bom = "4.0.0-RC2"
+spring-bom = "4.0.0"
 spring-cloud-bom = "2025.1.0-RC1"
 kotlin-logging = "7.0.13"
 
@@ -21,8 +21,7 @@ spring-boot-starter-web = "org.springframework.boot:spring-boot-starter-web"
 spring-boot-autoconfigure = "org.springframework.boot:spring-boot-autoconfigure"
 
 spring-cloud-starter-gateway-server-webflux = "org.springframework.cloud:spring-cloud-starter-gateway-server-webflux"
-spring-cloud-gateway-mvc = "org.springframework.cloud:spring-cloud-gateway-mvc"
-spring-cloud-gateway-webflux = "org.springframework.cloud:spring-cloud-gateway-webflux"
+spring-cloud-starter-gateway-server-webmvc = "org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc"
 
 spring-boot-starter-webflux = "org.springframework.boot:spring-boot-starter-webflux"
 
