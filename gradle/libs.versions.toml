@@ -1,5 +1,5 @@
 [versions]
-spring-bom = "4.0.0"
+spring-bom = "4.0.0-RC2"
 spring-cloud-bom = "2025.1.0-RC1"
 kotlin-logging = "7.0.13"
 

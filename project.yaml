@@ -9,3 +9,6 @@ modules:
   - modules/flagforge-common-streams
   - modules/flagforge-evaluation-api
   - modules/flagforge-history
+
+  - cloud/flagforge-cloud-gateway
+  #- cloud/flagforge-cloud-eureka
