@@ -4,4 +4,15 @@ server:
 spring:
   application:
     name: flagforge-cloud-gateway
+  main:
+    web-application-type: reactive
+  profiles:
+    include: oauth2-keycloak
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${oidc.issuer-uri}
 
+oidc:
+  issuer-uri: http://localhost:7766/realms/flagforge

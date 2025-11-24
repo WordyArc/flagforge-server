@@ -7,3 +7,12 @@ apply:
 dependencies:
   - $libs.spring.cloud.starter.gateway.server.webflux
   - $libs.kotlinx.coroutines.reactor
+  - org.springframework.boot:spring-boot-starter-security
+  - org.springframework.boot:spring-boot-starter-oauth2-resource-server
+  - dev.owlmajin:oidc-authproxy-spring:0.0.2
+
+# чтобы подкинуть локальную зависимость...
+repositories:
+  - mavenLocal
+#  - url: mavenLocal
+#    resolve: true
