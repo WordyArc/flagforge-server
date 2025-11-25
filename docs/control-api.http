@@ -4,12 +4,12 @@ X-Actor-Id: test-user
 Content-Type: application/json
 
 {
-  "key": "flagforge-demo",
+  "key": "flagforge-demo23",
   "name": "FlagForge Demo Project"
 }
 
 ### Create environment
-@eProjectId =c20876fa-7169-443c-a204-b07b25ef3bbd
+@eProjectId =9a321dc3-a8b5-4340-a127-a1121de745f4
 
 POST http://localhost:8184/api/v1/control/projects/{{eProjectId}}/envs
 X-Actor-Id: test-user
@@ -21,10 +21,10 @@ Content-Type: application/json
 }
 
 ### Create flag
-@fProjectId =c20876fa-7169-443c-a204-b07b25ef3bbd
+@fProjectId =9a321dc3-a8b5-4340-a127-a1121de745f4
 @environmentKey = dev
 POST http://localhost:8184/api/v1/control/projects/{{fProjectId}}/envs/{{environmentKey}}/flags
-X-Actor-Id: test-user
+X-Actor-Id: "test-user"
 Content-Type: application/json
 
 {
@@ -37,12 +37,12 @@ Content-Type: application/json
 }
 
 ###
-@flagId = 5bcbb7e2-a0bd-4865-b8ce-bdcc5595f47b
+@flagId =5bcbb7e2-a0bd-4865-b8ce-bdcc5595f47b
 POST http://localhost:8184/api/v1/control/flags/{{flagId}}:toggle
 Content-Type: application/json
 X-Actor-Id: alice
 
 {
-  "expectedVersion": 1,
-  "enabled": true
+  "expectedVersion": 2,
+  "enabled": false
 }
