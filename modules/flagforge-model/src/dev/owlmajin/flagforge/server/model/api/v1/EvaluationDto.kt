@@ -12,6 +12,7 @@ data class EvaluationResult(
     val projectId: String,
     val environmentKey: String,
     val flagKey: String,
+    val flagId: String? = null,
     val enabled: Boolean,
     val variant: String?,
     val reason: String,
