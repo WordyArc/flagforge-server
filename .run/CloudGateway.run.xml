@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CloudGateway" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="flagforge-cloud-gateway.common" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="dev.owlmajin.flagforge.server.cloud.gateway.CloudGatewayKt" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
