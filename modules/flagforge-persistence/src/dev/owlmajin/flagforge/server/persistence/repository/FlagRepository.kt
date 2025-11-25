@@ -5,11 +5,13 @@ import dev.owlmajin.flagforge.server.common.kafka.producer.sendAwait
 import dev.owlmajin.flagforge.server.common.kafka.topic.PersistenceProperties
 import dev.owlmajin.flagforge.server.model.CommandMessage
 import dev.owlmajin.flagforge.server.model.flag.CreateFlagCommand
+import dev.owlmajin.flagforge.server.model.flag.FlagCommandPayload
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 interface FlagRepository {
     suspend fun create(command: CommandMessage<CreateFlagCommand>)
+    suspend fun send(command: CommandMessage<out FlagCommandPayload>)
 }
 
 @Component
@@ -28,11 +30,13 @@ class FlagRepositoryImpl(
         val payload = command.payload
         producer.sendAwait(payload.flagId, command)
 
-        log.debug(
-            "Flag command sent. type={}, flagId={}, commandId={}",
-            payload::class.simpleName,
-            payload.flagId,
-            command.header.id,
-        )
+        log.debug("Flag create command sent. type=${payload::class.simpleName}, flagId=${payload.flagId}, commandId=${command.header.id}")
+    }
+
+    override suspend fun send(command: CommandMessage<out FlagCommandPayload>) {
+        val payload = command.payload
+        producer.sendAwait(payload.flagId, command)
+
+        log.debug("Flag command sent. type=${payload::class.simpleName}, flagId=${payload.flagId}, commandId=${command.header.id}")
     }
 }

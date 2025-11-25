@@ -1,5 +1,5 @@
 ### Evaluate flag
-@projectId = b626f106-184f-4cc3-a8cf-7c96ce707cd1
+@projectId = c20876fa-7169-443c-a204-b07b25ef3bbd
 POST http://localhost:8185/api/v1/eval
 Content-Type: application/json
 

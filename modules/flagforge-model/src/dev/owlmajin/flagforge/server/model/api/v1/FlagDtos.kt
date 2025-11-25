@@ -32,3 +32,8 @@ data class FlagResource(
     val salt: String,
     val updatedAt: Instant,
 )
+
+data class ToggleFlagRequest(
+    val expectedVersion: Long,
+    val enabled: Boolean,
+)

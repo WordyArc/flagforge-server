@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### Create environment
-@eProjectId =b626f106-184f-4cc3-a8cf-7c96ce707cd1
+@eProjectId =c20876fa-7169-443c-a204-b07b25ef3bbd
 
 POST http://localhost:8184/api/v1/control/projects/{{eProjectId}}/envs
 X-Actor-Id: test-user
@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 ### Create flag
-@fProjectId =b626f106-184f-4cc3-a8cf-7c96ce707cd1
+@fProjectId =c20876fa-7169-443c-a204-b07b25ef3bbd
 @environmentKey = dev
 POST http://localhost:8184/api/v1/control/projects/{{fProjectId}}/envs/{{environmentKey}}/flags
 X-Actor-Id: test-user
@@ -36,3 +36,13 @@ Content-Type: application/json
   "salt": null
 }
 
+###
+@flagId = 5bcbb7e2-a0bd-4865-b8ce-bdcc5595f47b
+POST http://localhost:8184/api/v1/control/flags/{{flagId}}:toggle
+Content-Type: application/json
+X-Actor-Id: alice
+
+{
+  "expectedVersion": 1,
+  "enabled": true
+}

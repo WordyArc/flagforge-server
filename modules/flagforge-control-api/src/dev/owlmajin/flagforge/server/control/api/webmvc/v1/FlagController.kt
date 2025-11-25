@@ -8,6 +8,7 @@ import dev.owlmajin.flagforge.server.control.api.webmvc.V_1
 import dev.owlmajin.flagforge.server.control.api.webmvc.resolveActorId
 import dev.owlmajin.flagforge.server.model.api.v1.CommandResponse
 import dev.owlmajin.flagforge.server.model.api.v1.CreateFlagRequest
+import dev.owlmajin.flagforge.server.model.api.v1.ToggleFlagRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -36,6 +37,24 @@ class FlagController(private val flagService: FlagService) {
             environmentKey = environmentKey,
             actorId = actorId,
             request = request,
+        )
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(result)
+    }
+
+    @PostMapping(path = ["/flags/{flagId}:toggle"])
+    suspend fun toggleFlag(
+        @RequestHeader(name = ACTOR_HEADER, required = false) actorHeader: String?,
+        @PathVariable flagId: String,
+        @RequestBody request: ToggleFlagRequest,
+    ): ResponseEntity<CommandResponse> {
+        val actorId = resolveActorId(actorHeader)
+
+        val result = flagService.toggleFlag(
+            flagId = flagId,
+            actorId = actorId,
+            expectedVersion = request.expectedVersion,
+            enabled = request.enabled,
         )
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(result)
